@@ -680,6 +680,8 @@
   .tl-field-label input{ font-size:13px; font-weight:700; color:var(--ink); }
   .tl-unified-row{ background:var(--paper); padding:14px 16px; border-radius:14px; border:2px solid var(--paper-darker); transition:border-color .2s var(--ease); }
   .tl-unified-row.is-customized{ border-color:var(--jade); }
+  .tl-unified-row-all{ border:2px dashed var(--seal-dark); background:rgba(0,0,0,0.02); margin-bottom:4px; }
+  .tl-unified-row-all.is-customized{ border-style:solid; }
   .tl-customized-badge{ display:inline-block; font-size:10px; font-weight:800; color:#fff; background:var(--jade); border-radius:999px; padding:2px 8px; margin-left:6px; vertical-align:middle; }
   .tl-group-title{ font-size:10.5px; font-weight:800; color:var(--seal-dark); text-transform:uppercase; letter-spacing:.02em; margin:10px 0 6px; }
   .tl-group-title:first-of-type{ margin-top:0; }
@@ -3221,7 +3223,7 @@ function topicList() {
 /* Số từ tối thiểu khi tách list: ưu tiên số giáo viên đã tùy chỉnh riêng cho từng list (topic),
    nếu list đó chưa cấu hình riêng thì dùng mức tối thiểu mặc định chung của lớp. */
 function getTimedMinSplitCount(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.timedMinSplitCounts?.[topic];
     if (typeof custom === "number" && custom > 0) return custom;
@@ -3277,7 +3279,7 @@ function getQuizSplitReward(topic) {
 /* Số câu tối thiểu học viên phải chọn khi làm mục Kiểm Tra: ưu tiên số giáo viên đã tùy chỉnh
    riêng cho từng list (topic), nếu list đó chưa cấu hình riêng thì dùng mức tối thiểu mặc định chung. */
 function getQuizMinCount(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.qzMinCounts?.[topic];
     if (typeof custom === "number" && custom > 0) return custom;
@@ -3288,7 +3290,7 @@ function getQuizMinCount(topic) {
 /* Số câu tối thiểu học viên phải chọn khi làm mục Kiểm Tra Pinyin: tương tự
    getQuizMinCount() ở trên nhưng dùng cấu hình riêng cho mục này. */
 function getPyMinCount(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.pyMinCounts?.[topic];
     if (typeof custom === "number" && custom > 0) return custom;
@@ -3300,7 +3302,7 @@ function getPyMinCount(topic) {
    tự getPyMinCount() / getQuizMinCount() ở trên nhưng dùng cấu hình riêng
    cho mục này (wcMinCounts theo từng list, hoặc mức mặc định chung). */
 function getWcMinCount(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.wcMinCounts?.[topic];
     if (typeof custom === "number" && custom > 0) return custom;
@@ -3312,7 +3314,7 @@ function getWcMinCount(topic) {
    lại từ đầu (học đến khi thuộc chắc mới thôi) — ưu tiên cấu hình riêng
    theo từng list, nếu chưa tùy chỉnh thì dùng mức mặc định chung. */
 function getPyRestartThreshold(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.pyRestartThresholds?.[topic];
     if (typeof custom === "number" && custom >= 0) return custom;
@@ -3326,7 +3328,7 @@ function getPyRestartThreshold(topic) {
    cấu hình riêng theo từng list, nếu chưa tùy chỉnh thì dùng mức mặc định
    chung. */
 function getQuizRestartThreshold(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.qzRestartThresholds?.[topic];
     if (typeof custom === "number" && custom >= 0) return custom;
@@ -3339,7 +3341,7 @@ function getQuizRestartThreshold(topic) {
    định chung (quizRewardTiers.passThreshold). Khác với qzRestartThresholds
    (ngưỡng % sai để tự xáo lại bài, không liên quan Trúc). */
 function getQuizPassThreshold(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.qzThresholds?.[topic];
     if (typeof custom === "number" && custom >= 0) return custom;
@@ -3389,7 +3391,7 @@ function getPinyinSplitReward(topic) {
    mặc định chung (pinyinRewardTiers.passThreshold). Khác với
    pyRestartThresholds (ngưỡng % sai để tự xáo lại bài, không liên quan Trúc). */
 function getPinyinPassThreshold(topic) {
-  if (topic && topic !== "all") {
+  if (topic) {
     const cData = getCurrentClassData();
     const custom = cData?.pyThresholds?.[topic];
     if (typeof custom === "number" && custom >= 0) return custom;
@@ -7844,8 +7846,14 @@ function renderUnifiedListRows() {
   const defaultWcMin = getWcMinCount();
 
   wrap.innerHTML = "";
-  topics.forEach(t => {
-    const wCount = allWords().filter(w => w.topic === t).length;
+
+  /* Dựng 1 dòng cấu hình dùng chung cho cả list/chủ đề thật (t = tên list)
+     lẫn dòng đặc biệt "Tất cả chủ đề / List" (t = "all", đúng bằng value
+     "all" mà học viên chọn ở các select topic — xem fillTopicSelect()).
+     Nhờ vậy khi giáo viên lưu dòng "all", các hàm getXxxReward()/getXxxMinCount()
+     ở trên (đã bỏ điều kiện loại trừ "all") sẽ tự động đọc đúng cấu hình riêng
+     này mỗi khi học viên làm bài với lựa chọn "Tất cả chủ đề / List". */
+  function buildUnifiedRow(t, headerHtml, extraRowClass) {
     const minSplitForTopic = getTimedMinSplitCount(t);
     const defaultSplitRewardForTopic = getTimedSplitReward(t);
     const defaultQzSplitRewardForTopic = getQuizSplitReward(t);
@@ -7874,13 +7882,12 @@ function renderUnifiedListRows() {
     ].some(v => v !== "");
 
     const row = document.createElement("div");
-    row.className = "tl-unified-row" + (isCustomized ? " is-customized" : "");
+    row.className = "tl-unified-row" + (extraRowClass ? " " + extraRowClass : "") + (isCustomized ? " is-customized" : "");
     row.dataset.topic = t;
     row.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
         <div>
-          <strong style="font-size:14px;">${t}</strong>
-          <span style="font-size:11px; color:var(--ink-soft); margin-left:6px;">${wCount} từ${wCount > minSplitForTopic ? " · có thể tách list" : " · chưa đủ để tách list"}</span>
+          ${headerHtml}
           ${isCustomized ? '<span class="tl-customized-badge">Đã tùy chỉnh</span>' : ""}
         </div>
         <div style="display:flex; gap:8px;">
@@ -7947,7 +7954,26 @@ function renderUnifiedListRows() {
         </label>
       </div>
     `;
-    wrap.appendChild(row);
+    return row;
+  }
+
+  /* Dòng đặc biệt "Tất cả chủ đề / List" — luôn hiện ở đầu danh sách, không bị
+     lọc theo ô tìm kiếm, để Thầy/Cô luôn thấy và cấu hình được Trúc/số câu/ngưỡng
+     riêng cho trường hợp học viên chọn gộp "Tất cả chủ đề / List" khi làm bài
+     (áp dụng cho cả 4 mục: Thử Thách Thời Gian, Kiểm Tra, Kiểm Tra Pinyin, Đặt Câu). */
+  const totalWordCount = allWords().length;
+  wrap.appendChild(buildUnifiedRow("all", `
+    <strong style="font-size:14px; color:var(--seal-dark);">🌐 Tất cả chủ đề / List</strong>
+    <span style="font-size:11px; color:var(--ink-soft); margin-left:6px;">${totalWordCount} từ (gộp mọi list) · áp dụng khi học viên chọn "Tất cả chủ đề / List" lúc làm bài</span>
+  `, "tl-unified-row-all"));
+
+  topics.forEach(t => {
+    const wCount = allWords().filter(w => w.topic === t).length;
+    const minSplitForTopic = getTimedMinSplitCount(t);
+    wrap.appendChild(buildUnifiedRow(t, `
+      <strong style="font-size:14px;">${t}</strong>
+      <span style="font-size:11px; color:var(--ink-soft); margin-left:6px;">${wCount} từ${wCount > minSplitForTopic ? " · có thể tách list" : " · chưa đủ để tách list"}</span>
+    `));
   });
 
   wrap.querySelectorAll(".tl-unified-save-btn").forEach(btn => {
