@@ -1628,7 +1628,7 @@ const SUPABASE_ACTIONS_ = {
   update_account_name: { fn: "update_account_name", params: { username: "p_username", displayName: "p_display_name" } },
   delete_account: { fn: "delete_account", params: { username: "p_username" } },
   get_progress: { fn: "get_progress", params: { username: "p_username" } },
-  save_progress: { fn: "save_progress", params: { username: "p_username", progress: "p_progress" } },
+  save_progress: { fn: "save_progress", params: { username: "p_username", progress: "p_progress", baselinePouch: "p_baseline_pouch", baselineDecorations: "p_baseline_decorations" } },
   join_class: { fn: "join_class", params: { className: "p_class_name", username: "p_username", displayName: "p_display_name" } },
   get_class_members: { fn: "get_class_members", params: { className: "p_class_name" } },
   remove_class_member: { fn: "remove_class_member", params: { className: "p_class_name", username: "p_username" } },
@@ -2248,6 +2248,30 @@ function sanitizeState(s) {
       if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
       if (!cData.pyThresholds || typeof cData.pyThresholds !== "object") cData.pyThresholds = {};
       if (typeof cData.password !== "string") cData.password = "123";
+      /* FIX: rewardMatrix (tỷ lệ Trúc cho Chép Chính Tả, Đặt Câu, Ngữ Pháp,
+         Streak...) trước đây bị lưu NHẦM vào state.gamification — tức dữ
+         liệu CÁ NHÂN của riêng tài khoản đang đăng nhập (đồng bộ qua
+         save_progress), KHÔNG đồng bộ giữa các thiết bị/tài khoản. Kết quả:
+         giáo viên đổi tỷ lệ thưởng trên tài khoản/thiết bị của mình, nhưng
+         mỗi học viên trên thiết bị khác vẫn đọc rewardMatrix mặc định cứng
+         (dictation:15, sentence:15...) của riêng account họ — không hề đổi.
+         Nay chuyển rewardMatrix vào cData (thuộc state.classes[cName]),
+         nằm trong SHARED_FIELDS nên tự động đồng bộ cho CẢ LỚP qua
+         save_shared_config/get_shared_config (poll mỗi ít giây), giống hệt
+         cơ chế đã dùng đúng cho qzFullRewards, timedListRewards...
+         LƯU Ý: đây là lần đầu tạo cData.rewardMatrix nên chỉ điền giá trị
+         MẶC ĐỊNH GỐC — các tỷ lệ giáo viên từng tùy chỉnh trước đây (chỉ
+         từng lưu được vào tài khoản riêng của giáo viên, chưa từng thật sự
+         áp dụng cho học viên) sẽ KHÔNG được khôi phục tự động; giáo viên
+         cần vào CMS > Reward Matrix bấm Lưu lại 1 lần sau khi cập nhật bản
+         vá này. */
+      if (!cData.rewardMatrix || typeof cData.rewardMatrix !== "object") cData.rewardMatrix = {};
+      {
+        const rmDefaults = { quiz: 10, pinyin: 10, timed: 10, dictation: 15, sentence: 15, grammar: 20, streak: 30, classTest: 25 };
+        Object.keys(rmDefaults).forEach(k => {
+          if (typeof cData.rewardMatrix[k] !== "number") cData.rewardMatrix[k] = rmDefaults[k];
+        });
+      }
       ensureClassTestDefaults(cData);
     }
   });
@@ -2577,13 +2601,55 @@ function describeServerError(res) {
 }
 
 let _progressSyncTimer = null;
+
+/* FIX QUAN TRỌNG: bản vá save_progress trước đây (thêm p_baseline_pouch để
+   server tự CỘNG DỒN delta thay vì GHI ĐÈ toàn bộ, tránh mất Trúc khi giáo
+   viên vừa cộng đúng lúc học viên đang lưu tiến trình) đã được viết ở phía
+   SQL, nhưng KHÔNG HỀ được gọi từ client — pushProgressToServer() phía dưới
+   trước đây chỉ gửi "username" và "progress", chưa từng gửi baseline_pouch
+   -> cơ chế bảo vệ đó chưa từng thực sự chạy, save_progress vẫn luôn ghi
+   đè NGUYÊN VẸN như bản gốc lỗi ban đầu. Lỗi "tặng đạo cụ chỉ trừ bên gửi,
+   bên nhận không nhận được" là CÙNG MỘT LỚP LỖI này nhưng xảy ra với
+   gamification.decorations: giao dịch transfer_decoration tự nó chạy đúng
+   (atomic, đã cộng đúng cho người nhận trên server) — nhưng nếu người NHẬN,
+   trong lúc thiết bị của họ CHƯA kịp poll lại (poll mỗi vài giây), lại vô
+   tình kích hoạt saveState() (làm bài tập, chuyển tab...) thì
+   pushProgressToServer() sẽ gửi lên bản decorations CŨ (chưa có món quà) và
+   GHI ĐÈ MẤT món quà vừa nhận trên server.
+   _serverBaselinePouch / _serverBaselineDecorations dưới đây lưu lại giá
+   trị "mình biết chắc chắn khớp với server" tại thời điểm gần nhất (sau khi
+   login, sau mỗi lần poll, hoặc sau mỗi giao dịch server-atomic như tặng
+   đạo cụ/cướp Trúc) — pushProgressToServer() gửi kèm 2 giá trị này lên,
+   để server tự tính đúng phần CHÊNH LỆCH do chính học viên tạo ra cục bộ
+   (mua đồ, làm bài tích Trúc...) và CỘNG DỒN lên trên bản mới nhất của
+   server, thay vì ghi đè tuyệt đối — không còn nuốt mất thay đổi của
+   giáo viên/bạn học nào đã xảy ra ở giữa nữa. */
+let _serverBaselinePouch = null;
+let _serverBaselineDecorations = null;
+function captureServerBaseline_() {
+  const g = state.gamification || {};
+  _serverBaselinePouch = typeof g.bambooPouch === "number" ? g.bambooPouch : 0;
+  _serverBaselineDecorations = Array.isArray(g.decorations) ? g.decorations.slice() : [];
+}
+
 function pushProgressToServer() {
   if (!state.username) return;
   clearTimeout(_progressSyncTimer);
   _progressSyncTimer = setTimeout(() => {
     callServer("save_progress", {
       username: state.username,
-      progress: captureCurrentProgress()
+      progress: captureCurrentProgress(),
+      baselinePouch: _serverBaselinePouch,
+      baselineDecorations: _serverBaselineDecorations
+    }).then(res => {
+      /* Server trả về giá trị CUỐI CÙNG đã hoà giải xong (bambooPouch,
+         decorations) -> đồng bộ lại state cục bộ + baseline theo đúng bản
+         đó, để lần lưu kế tiếp tính delta đúng, không bị lệch dần. */
+      if (res && res.ok && state.gamification) {
+        if (typeof res.bambooPouch === "number") state.gamification.bambooPouch = res.bambooPouch;
+        if (Array.isArray(res.decorations)) state.gamification.decorations = res.decorations;
+        captureServerBaseline_();
+      }
     });
   }, 1500);
 }
@@ -2598,11 +2664,13 @@ async function syncProgressFromServer() {
     applyProgressToState(res.progress);
     sanitizeState(state);
     state.studentProgress[state.username] = captureCurrentProgress();
+    captureServerBaseline_(); // FIX: chốt lại baseline Trúc/đạo cụ ngay sau khi nạp bản mới nhất từ server
   } else {
     callServer("save_progress", {
       username: state.username,
       progress: captureCurrentProgress()
     });
+    captureServerBaseline_();
   }
 }
 
@@ -2998,6 +3066,7 @@ async function pollOwnProgressFromServer() {
     applyProgressToState(res.progress);
     sanitizeState(state);
     state.studentProgress[state.username] = captureCurrentProgress();
+    captureServerBaseline_(); // FIX: chốt lại baseline Trúc/đạo cụ ngay sau khi poll bản mới nhất từ server
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   }
 }
@@ -3167,7 +3236,7 @@ function getTimedListReward(topic) {
   if (!cData.timedListRewards || typeof cData.timedListRewards !== "object") cData.timedListRewards = {};
   const custom = cData.timedListRewards[topic];
   if (typeof custom === "number" && custom >= 0) return custom;
-  return state.gamification?.rewardMatrix?.timed || 10;
+  return cData.rewardMatrix?.timed || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
 }
 
 /* Trúc thưởng khi làm chế độ "Tách Ngẫu Nhiên Một Phần" cho 1 list cụ thể: ưu tiên số giáo viên đã
@@ -3191,7 +3260,7 @@ function getQuizFullReward(topic) {
   if (!cData.qzFullRewards || typeof cData.qzFullRewards !== "object") cData.qzFullRewards = {};
   const custom = cData.qzFullRewards[topic];
   if (typeof custom === "number" && custom >= 0) return custom;
-  return state.gamification?.rewardMatrix?.quiz || 10;
+  return cData.rewardMatrix?.quiz || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
 }
 
 /* Trúc thưởng khi chỉ chọn làm một phần số câu ở mục Kiểm Tra cho 1 list cụ thể:
@@ -3299,7 +3368,7 @@ function getPinyinFullReward(topic) {
   if (!cData.pyFullRewards || typeof cData.pyFullRewards !== "object") cData.pyFullRewards = {};
   const custom = cData.pyFullRewards[topic];
   if (typeof custom === "number" && custom >= 0) return custom;
-  return state.gamification?.rewardMatrix?.pinyin || 10;
+  return cData.rewardMatrix?.pinyin || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
 }
 
 /* Trúc thưởng khi chỉ chọn làm một phần số câu ở mục Kiểm Tra Pinyin cho 1
@@ -4506,6 +4575,16 @@ async function giftDecorationToPeer(itemId, itemIndex, targetUsername) {
   }
   peer.charm = calcPandaCharm(peer.decorations);
 
+  /* FIX: giao dịch tặng đồ vừa chạy XONG trực tiếp trên server (atomic qua
+     RPC transfer_decoration) — g.decorations ở trên giờ đã khớp CHÍNH XÁC
+     với server. Phải chốt lại baseline NGAY tại đây; nếu không, lượt
+     save_progress kế tiếp (debounce 1.5s, có thể bị kích hoạt bởi bất kỳ
+     thao tác nào khác ngay sau đó) sẽ so sánh với baseline CŨ (còn món đồ
+     vừa tặng đi) → tính nhầm thành "vừa xoá thêm 1 lần nữa" và trừ lệch
+     trên server. Chốt baseline ở đây đảm bảo lượt lưu kế tiếp tính đúng
+     delta = 0 cho món đồ này. */
+  captureServerBaseline_();
+
   /* Sync current student in peers array */
   if (state.username && Array.isArray(g.peers)) {
     const me = g.peers.find(p => p.username === state.username);
@@ -4661,6 +4740,7 @@ async function stealBambooFromPeer(peerUsername) {
 
   if (myRes && myRes.ok && typeof myRes.bambooPouch === "number") {
     g.bambooPouch = myRes.bambooPouch;
+    captureServerBaseline_(); // FIX: chốt baseline ngay vì server vừa xác nhận số Trúc mới qua RPC trực tiếp, tránh save_progress kế tiếp tính lệch delta
   } else {
     /* Trường hợp hiếm: trừ của nạn nhân đã thành công nhưng cộng cho
        chính mình lại gặp lỗi mạng ngay lúc đó -> vẫn cập nhật tạm trên
@@ -5812,7 +5892,7 @@ function renderWcArea() {
     const text = document.getElementById("wc-textarea").value.trim();
     if (!text) return alert("Vui lòng viết đoạn văn trước khi nộp bài!");
 
-    const rewardAmt = state.gamification.rewardMatrix.sentence ?? 15;
+    const rewardAmt = getCurrentClassData()?.rewardMatrix?.sentence ?? 15; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
     grantBamboo(rewardAmt, "Bài tập Đặt câu");
 
     sendAnswerToGoogleSheet({
@@ -5855,7 +5935,7 @@ let grammarActiveSectionId = null;
    Pháp trong Reward Matrix). */
 function getGrammarReward(sec) {
   if (sec && typeof sec.reward === "number" && sec.reward >= 0) return sec.reward;
-  return state.gamification?.rewardMatrix?.grammar || 20;
+  return getCurrentClassData()?.rewardMatrix?.grammar || 20; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
 }
 
 function escapeHtml(str) {
@@ -6381,7 +6461,7 @@ function submitClassTest(auto = false, toastMsg = null) {
   };
   cData.classTest.submissions.push(submission);
 
-  const rewardAmt = state.gamification?.rewardMatrix?.classTest || 25;
+  const rewardAmt = cData.rewardMatrix?.classTest || 25; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
   grantBamboo(rewardAmt, `Bài Kiểm Tra: ${list.name}`);
   saveState();
 
@@ -6699,13 +6779,13 @@ function initDictationControls() {
     const text = document.getElementById("dictation-text").value.trim();
     if (!text) return alert("Vui lòng gõ nội dung bài nghe!");
 
-    const rewardAmt = state.gamification?.rewardMatrix?.dictation ?? 15;
+    const cData = getCurrentClassData();
+    const rewardAmt = cData.rewardMatrix?.dictation ?? 15; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
     if (!state.gamification.counters) state.gamification.counters = {};
     state.gamification.counters.dictationCount = (state.gamification.counters.dictationCount || 0) + 1;
     grantBamboo(rewardAmt, "Bài tập Chép Chính Tả Video");
 
     const vId = document.getElementById("dictation-video-select").value;
-    const cData = getCurrentClassData();
     const vObj = (cData.videos || []).find(v => v.id === vId);
 
     if (!state.dictationSubmissions[state.currentClassName]) state.dictationSubmissions[state.currentClassName] = {};
@@ -7403,9 +7483,17 @@ function initTeacherCMSHandlers() {
     alert("Đã ghim thông báo dặn dò cho CẢ LỚP! Mọi học viên sẽ thấy trong ít giây.");
   });
 
-  /* Reward Matrix CMS */
+  /* Reward Matrix CMS — FIX: trước đây lưu vào state.gamification.rewardMatrix
+     (dữ liệu CÁ NHÂN của tài khoản giáo viên đang đăng nhập, chỉ đồng bộ qua
+     save_progress của riêng account đó) nên học viên trên thiết bị khác
+     KHÔNG BAO GIỜ nhận được thay đổi này. Giờ lưu vào cData.rewardMatrix —
+     thuộc state.classes[currentClassName], nằm trong SHARED_FIELDS nên
+     saveState() bên dưới sẽ tự đẩy lên server qua save_shared_config và mọi
+     học viên trong lớp sẽ nhận được ở lượt poll tiếp theo (vài giây sau). */
   document.getElementById("cms-save-reward-btn")?.addEventListener("click", () => {
-    const rm = state.gamification.rewardMatrix;
+    const cData = getCurrentClassData();
+    if (!cData.rewardMatrix || typeof cData.rewardMatrix !== "object") cData.rewardMatrix = {};
+    const rm = cData.rewardMatrix;
     rm.quiz = parseInt(document.getElementById("rm-quiz").value) || 10;
     rm.pinyin = parseInt(document.getElementById("rm-pinyin").value) || 10;
     rm.timed = parseInt(document.getElementById("rm-timed").value) || 10;
@@ -7414,7 +7502,7 @@ function initTeacherCMSHandlers() {
     rm.grammar = parseInt(document.getElementById("rm-grammar").value) || 20;
     rm.streak = parseInt(document.getElementById("rm-streak").value) || 30;
     saveState();
-    alert("Lưu Tỷ lệ Thưởng Trúc thành công!");
+    alert(`Lưu Tỷ lệ Thưởng Trúc cho lớp "${state.currentClassName}" thành công! Học viên trong lớp sẽ nhận thay đổi này sau ít giây (qua đồng bộ tự động).`);
   });
 
   /* Grant / Deduct Bamboo — FIX: trước đây luôn cộng/trừ vào tài khoản
@@ -7744,13 +7832,13 @@ function renderUnifiedListRows() {
   }
 
   const defaultMinSplit = getTimedMinSplitCount();
-  const defaultReward = state.gamification?.rewardMatrix?.timed || 10;
+  const defaultReward = cData.rewardMatrix?.timed || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
   const defaultQzMin = getQuizMinCount();
-  const defaultQzFullReward = state.gamification?.rewardMatrix?.quiz || 10;
+  const defaultQzFullReward = cData.rewardMatrix?.quiz || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
   const defaultQzThresholdPct = getQuizPassThreshold();
   const defaultQzPct = getQuizRestartThreshold();
   const defaultPyMin = getPyMinCount();
-  const defaultPyFullReward = state.gamification?.rewardMatrix?.pinyin || 10;
+  const defaultPyFullReward = cData.rewardMatrix?.pinyin || 10; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
   const defaultPyThresholdPct = getPinyinPassThreshold();
   const defaultPyPct = getPyRestartThreshold();
   const defaultWcMin = getWcMinCount();
@@ -8167,7 +8255,12 @@ function renderTeacherCMS() {
   const annInp = document.getElementById("cms-announcement-input");
   if (annInp) annInp.value = state.announcement || state.gamification.announcement || "";
 
-  const rm = state.gamification.rewardMatrix;
+  /* FIX: hiển thị đúng rewardMatrix của LỚP đang chọn (cData), không phải
+     bản cá nhân cũ trong state.gamification — xem giải thích ở
+     cms-save-reward-btn handler phía trên. */
+  const rmCData = getCurrentClassData();
+  if (!rmCData.rewardMatrix || typeof rmCData.rewardMatrix !== "object") rmCData.rewardMatrix = {};
+  const rm = rmCData.rewardMatrix;
   if (document.getElementById("rm-quiz")) document.getElementById("rm-quiz").value = rm.quiz || 10;
   if (document.getElementById("rm-pinyin")) document.getElementById("rm-pinyin").value = rm.pinyin || 10;
   if (document.getElementById("rm-timed")) document.getElementById("rm-timed").value = rm.timed || 10;
@@ -8635,7 +8728,7 @@ function renderGrammarTeacherManager() {
   if (!wrap) return;
   const cData = getCurrentClassData();
   wrap.innerHTML = "";
-  const defaultGrammarReward = state.gamification?.rewardMatrix?.grammar || 20;
+  const defaultGrammarReward = cData.rewardMatrix?.grammar || 20; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
 
   (cData.grammarSections || []).forEach((sec, sIdx) => {
     const subCount = (cData.grammarSubmissions || []).filter(s => s.sectionId === sec.id).length;
