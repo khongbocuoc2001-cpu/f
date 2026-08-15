@@ -3339,24 +3339,42 @@ function computePinyinTestReward(pct, topic, useAll) {
   return useAll ? getPinyinFullReward(topic) : getPinyinSplitReward(topic);
 }
 
-function fillTopicSelect(sel, includeAll = true) {
+/* Từ nay: các select chủ đề/list dùng cho HOẠT ĐỘNG học viên (forceChoice=true,
+   mặc định) đều bắt buộc phải tự bấm chọn 1 list cụ thể trước — không còn tự
+   động mặc định vào "Tất cả chủ đề / List" nữa (tránh việc học viên lười chọn,
+   cứ thế bấm bắt đầu và vô tình luôn làm full tất cả list). Placeholder
+   "-- Chọn List Muốn Làm --" đứng đầu (disabled, không chọn được), rồi tới các
+   list cụ thể, và "Tất cả chủ đề / List" luôn nằm CUỐI CÙNG.
+   Với các select thuần lọc/tra cứu (vd. mục Quản Lý từ vựng), truyền
+   forceChoice=false để vẫn giữ hành vi mặc định chọn "Tất cả" ngay (không ép
+   chọn) nhưng vị trí "Tất cả" vẫn được đưa xuống cuối cho nhất quán. */
+function fillTopicSelect(sel, includeAll = true, forceChoice = true) {
   if (!sel) return;
   const previousValue = sel.value;
   sel.innerHTML = "";
-  if (includeAll) {
-    const o = document.createElement("option");
-    o.value = "all"; o.textContent = "Tất cả chủ đề / List";
-    sel.appendChild(o);
+  if (includeAll && forceChoice) {
+    const ph = document.createElement("option");
+    ph.value = ""; ph.textContent = "-- Chọn List Muốn Làm --";
+    ph.disabled = true;
+    sel.appendChild(ph);
   }
   topicList().forEach(t => {
     const o = document.createElement("option");
     o.value = t; o.textContent = t;
     sel.appendChild(o);
   });
-  /* Giữ nguyên lựa chọn hiện tại của người dùng (nếu vẫn còn tồn tại trong danh sách mới),
-     tránh việc dropdown tự nhảy về "Tất cả" mỗi khi render lại. */
+  if (includeAll) {
+    const o = document.createElement("option");
+    o.value = "all"; o.textContent = "Tất cả chủ đề / List";
+    sel.appendChild(o);
+  }
+  /* Giữ nguyên lựa chọn hiện tại của người dùng (nếu vẫn còn tồn tại trong danh sách mới). */
   if (previousValue && Array.from(sel.options).some(opt => opt.value === previousValue)) {
     sel.value = previousValue;
+  } else if (includeAll && forceChoice) {
+    sel.value = "";
+  } else if (includeAll) {
+    sel.value = "all";
   }
 }
 
@@ -4882,6 +4900,7 @@ const fcLevelSel = document.getElementById("fc-level");
 let fcDeck = [];
 let fcIndex = 0;
 let fcReviewOnly = false;
+let fcNeedsTopic = false;
 
 function reviewListForClass() {
   if (!state.reviewWords) state.reviewWords = {};
@@ -4897,8 +4916,17 @@ function updateReviewCountBadge() {
 
 function buildFcDeck() {
   fillTopicSelect(fcTopicSel);
-  const words = allWords();
   const topic = fcTopicSel ? fcTopicSel.value : "all";
+  if (!topic) {
+    fcDeck = [];
+    fcIndex = 0;
+    fcNeedsTopic = true;
+    updateReviewCountBadge();
+    renderFcCard();
+    return;
+  }
+  fcNeedsTopic = false;
+  const words = allWords();
   const level = fcLevelSel ? fcLevelSel.value : "all";
 
   let filtered = words.filter(w => {
@@ -4923,6 +4951,16 @@ function renderFcCard() {
   const card = document.getElementById("flashcard");
   if (card) card.classList.remove("flipped");
   const counter = document.getElementById("fc-counter");
+
+  if (fcNeedsTopic) {
+    document.getElementById("fc-emoji").textContent = "🐼";
+    document.getElementById("fc-hanzi").textContent = "Hãy chọn 1 List";
+    document.getElementById("fc-pinyin").textContent = "";
+    document.getElementById("fc-meaning").textContent = "Vui lòng chọn 1 List/Chủ đề ở trên trước khi ôn từ nhé ✨";
+    document.getElementById("fc-example").textContent = "";
+    if (counter) counter.textContent = "0 / 0";
+    return;
+  }
 
   if (!fcDeck || fcDeck.length === 0) {
     document.getElementById("fc-emoji").textContent = "🐼";
@@ -5025,6 +5063,11 @@ function updateQuizCountHint() {
   const countInp = document.getElementById("qz-count-input");
   const hint = document.getElementById("qz-count-hint");
   if (!countInp) return;
+  if (!qzTopicSel.value) {
+    countInp.value = ""; countInp.disabled = true;
+    if (hint) hint.textContent = "Vui lòng chọn 1 List/Chủ đề ở trên trước!";
+    return;
+  }
   const words = allWords().filter(w => qzTopicSel.value === "all" || w.topic === qzTopicSel.value);
   const total = words.length;
   const minCount = Math.min(getQuizMinCount(qzTopicSel.value), Math.max(total, 1));
@@ -5064,6 +5107,10 @@ function initQuizHandlers() {
   updateQuizCountHint();
   document.getElementById("qz-start")?.addEventListener("click", () => {
     fillTopicSelect(qzTopicSel);
+    if (!qzTopicSel.value) {
+      alert("Vui lòng chọn 1 List/Chủ đề trước khi bắt đầu kiểm tra! (Chọn \"Tất cả chủ đề / List\" ở cuối danh sách nếu muốn làm hết).");
+      return;
+    }
     const words = allWords().filter(w => qzTopicSel.value === "all" || w.topic === qzTopicSel.value);
     if (words.length < 4) {
       qzArea.innerHTML = '<div class="empty-note">Cần ít nhất 4 từ vựng trong list này để làm trắc nghiệm!</div>';
@@ -5218,6 +5265,11 @@ function updatePyCountHint() {
   const countInp = document.getElementById("py-count-input");
   const hint = document.getElementById("py-count-hint");
   if (!countInp || !pyTopicSel) return;
+  if (!pyTopicSel.value) {
+    countInp.value = ""; countInp.disabled = true;
+    if (hint) hint.textContent = "Vui lòng chọn 1 List/Chủ đề ở trên trước!";
+    return;
+  }
   const words = allWords().filter(w => pyTopicSel.value === "all" || w.topic === pyTopicSel.value);
   const total = words.length;
   const minCount = Math.min(getPyMinCount(pyTopicSel.value), Math.max(total, 1));
@@ -5248,6 +5300,10 @@ function initPinyinTestHandlers() {
   updatePyCountHint();
   document.getElementById("py-start")?.addEventListener("click", () => {
     fillTopicSelect(pyTopicSel);
+    if (!pyTopicSel.value) {
+      alert("Vui lòng chọn 1 List/Chủ đề trước khi bắt đầu Kiểm Tra Pinyin! (Chọn \"Tất cả chủ đề / List\" ở cuối danh sách nếu muốn làm hết).");
+      return;
+    }
     const words = allWords().filter(w => pyTopicSel.value === "all" || w.topic === pyTopicSel.value);
     if (words.length < 1) {
       pyArea.innerHTML = '<div class="empty-note">List này chưa có từ vựng nào để Kiểm Tra Pinyin!</div>';
@@ -5435,8 +5491,13 @@ function renderTimedIdle() {
   clearInterval(tmTimerId);
   renderLightspeedPanel();
   fillTopicSelect(tmTopicSel);
-  const words = allWords().filter(w => tmTopicSel.value === "all" || w.topic === tmTopicSel.value);
   const bestPill = document.getElementById("tm-best");
+  if (!tmTopicSel.value) {
+    if (bestPill) bestPill.textContent = "Kỷ lục: —";
+    tmArea.innerHTML = '<div class="empty-note">Vui lòng chọn 1 List/Chủ đề ở trên trước khi bắt đầu thử thách!</div>';
+    return;
+  }
+  const words = allWords().filter(w => tmTopicSel.value === "all" || w.topic === tmTopicSel.value);
   const key = `${state.currentClassName}_${tmTopicSel.value}`;
   const best = state.timedBest[key];
   if (bestPill) bestPill.textContent = best ? `Kỷ lục: ${best} lượt` : "Kỷ lục: —";
@@ -5646,6 +5707,12 @@ function updateWcCountHint() {
   const countInp = document.getElementById("wc-count");
   const hint = document.getElementById("wc-count-hint");
   if (!countInp || !wcTopicSel) return;
+  if (!wcTopicSel.value) {
+    countInp.value = ""; countInp.disabled = true;
+    if (hint) hint.textContent = "Vui lòng chọn 1 List/Chủ đề ở trên trước!";
+    return;
+  }
+  countInp.disabled = false;
   const words = allWords().filter(w => wcTopicSel.value === "all" || w.topic === wcTopicSel.value);
   const total = words.length;
   const minCount = Math.min(getWcMinCount(wcTopicSel.value), Math.max(total, 1));
@@ -5665,6 +5732,10 @@ function initWordChallengeHandlers() {
   document.getElementById("wc-roll-btn")?.addEventListener("click", () => {
     fillTopicSelect(wcTopicSel);
     updateWcCountHint();
+    if (!wcTopicSel.value) {
+      alert("Vui lòng chọn 1 List/Chủ đề trước khi bắt đầu Đặt Câu! (Chọn \"Tất cả chủ đề / List\" ở cuối danh sách nếu muốn làm hết).");
+      return;
+    }
     const words = allWords().filter(w => wcTopicSel.value === "all" || w.topic === wcTopicSel.value);
     let count = parseInt(document.getElementById("wc-count").value) || 3;
     if (words.length === 0) return alert("List này chưa có từ vựng!");
@@ -5741,7 +5812,7 @@ function renderWcArea() {
     const text = document.getElementById("wc-textarea").value.trim();
     if (!text) return alert("Vui lòng viết đoạn văn trước khi nộp bài!");
 
-    const rewardAmt = state.gamification.rewardMatrix.sentence || 15;
+    const rewardAmt = state.gamification.rewardMatrix.sentence ?? 15;
     grantBamboo(rewardAmt, "Bài tập Đặt câu");
 
     sendAnswerToGoogleSheet({
@@ -6628,7 +6699,7 @@ function initDictationControls() {
     const text = document.getElementById("dictation-text").value.trim();
     if (!text) return alert("Vui lòng gõ nội dung bài nghe!");
 
-    const rewardAmt = state.gamification?.rewardMatrix?.dictation || 15;
+    const rewardAmt = state.gamification?.rewardMatrix?.dictation ?? 15;
     if (!state.gamification.counters) state.gamification.counters = {};
     state.gamification.counters.dictationCount = (state.gamification.counters.dictationCount || 0) + 1;
     grantBamboo(rewardAmt, "Bài tập Chép Chính Tả Video");
@@ -7018,7 +7089,7 @@ function renderManage() {
   const mgList = document.getElementById("mg-list");
   if (!mgList) return;
 
-  fillTopicSelect(mgTopicSel);
+  fillTopicSelect(mgTopicSel, true, false);
   const q = (mgSearch ? mgSearch.value : "").trim().toLowerCase();
   const topic = mgTopicSel ? mgTopicSel.value : "all";
 
@@ -7338,8 +7409,8 @@ function initTeacherCMSHandlers() {
     rm.quiz = parseInt(document.getElementById("rm-quiz").value) || 10;
     rm.pinyin = parseInt(document.getElementById("rm-pinyin").value) || 10;
     rm.timed = parseInt(document.getElementById("rm-timed").value) || 10;
-    rm.dictation = parseInt(document.getElementById("rm-dictation").value) || 15;
-    rm.sentence = parseInt(document.getElementById("rm-sentence").value) || 15;
+    { const v = parseInt(document.getElementById("rm-dictation").value); rm.dictation = isNaN(v) ? 15 : v; }
+    { const v = parseInt(document.getElementById("rm-sentence").value); rm.sentence = isNaN(v) ? 15 : v; }
     rm.grammar = parseInt(document.getElementById("rm-grammar").value) || 20;
     rm.streak = parseInt(document.getElementById("rm-streak").value) || 30;
     saveState();
@@ -8100,8 +8171,8 @@ function renderTeacherCMS() {
   if (document.getElementById("rm-quiz")) document.getElementById("rm-quiz").value = rm.quiz || 10;
   if (document.getElementById("rm-pinyin")) document.getElementById("rm-pinyin").value = rm.pinyin || 10;
   if (document.getElementById("rm-timed")) document.getElementById("rm-timed").value = rm.timed || 10;
-  if (document.getElementById("rm-dictation")) document.getElementById("rm-dictation").value = rm.dictation || 15;
-  if (document.getElementById("rm-sentence")) document.getElementById("rm-sentence").value = rm.sentence || 15;
+  if (document.getElementById("rm-dictation")) document.getElementById("rm-dictation").value = (rm.dictation ?? 15);
+  if (document.getElementById("rm-sentence")) document.getElementById("rm-sentence").value = (rm.sentence ?? 15);
   if (document.getElementById("rm-grammar")) document.getElementById("rm-grammar").value = rm.grammar || 20;
   if (document.getElementById("rm-streak")) document.getElementById("rm-streak").value = rm.streak || 30;
 
