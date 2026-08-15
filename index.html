@@ -265,6 +265,7 @@
   .stat-pill{ font-size:13px; color:var(--seal-dark); background:var(--accent-light); padding:8px 15px; border-radius:999px; font-weight:700; border:2px solid rgba(47,158,82,0.28); }
 
   .btn{ font-family:var(--sans); font-weight:700; font-size:14px; padding:12px 22px; border-radius:999px; border:2px solid transparent; cursor:pointer; box-shadow:var(--shadow-soft); transition:transform 0.15s var(--ease), box-shadow 0.15s var(--ease), filter 0.15s var(--ease); display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; filter:grayscale(0.3); box-shadow:none; }
   .btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); filter:brightness(1.04); }
   .btn:active{ transform:translateY(0); }
   .btn-primary{ background:linear-gradient(135deg,#2C4A3E,#1E3A2C); color:#fff; border-color:var(--seal-dark); }
@@ -653,10 +654,13 @@
 
   /* Word Challenge & Word List */
   .wc-chips{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
-  .wc-chip{ background:var(--accent-light); border:2px solid var(--jade); border-radius:var(--radius); padding:10px 16px; text-align:center; box-shadow:var(--shadow-soft); }
+  .wc-chip{ background:var(--accent-light); border:2px solid var(--jade); border-radius:var(--radius); padding:10px 16px; text-align:center; box-shadow:var(--shadow-soft); transition:background .2s, border-color .2s; }
   .wc-chip .hanzi{ font-family:var(--serif); font-size:22px; color:var(--seal-dark); font-weight:700; }
   .wc-chip .pinyin{ font-family:var(--mono); font-size:11px; color:var(--jade-dark); font-weight:700; }
   .wc-chip .meaning{ font-size:11px; color:var(--ink-soft); }
+  .wc-chip .wc-chip-status{ color:var(--ink-soft); }
+  .wc-chip.wc-chip-used{ background:#d9f7dd; border-color:#2e9e4a; }
+  .wc-chip.wc-chip-used .wc-chip-status{ color:#1f7a34; }
 
   .word-list{ display:flex; flex-direction:column; gap:10px; }
   .word-row{ display:flex; align-items:center; gap:12px; background:var(--card-bg); border:1px solid var(--paper-darker); border-radius:var(--radius); padding:13px 17px; box-shadow:var(--shadow-soft); transition:transform 0.15s var(--ease), box-shadow 0.15s var(--ease); }
@@ -672,6 +676,14 @@
   .video-stage iframe, .video-stage video{ width:100%; height:100%; border:0; display:block; }
 
   .teacher-note-box{ background:linear-gradient(135deg,#FFFDF0,#FFF8DC); border:1.5px dashed #F0CC5A; border-radius:var(--radius); padding:15px 17px; margin-bottom:16px; }
+  .tl-field-label{ font-size:11px; font-weight:700; color:var(--ink-soft); display:flex; flex-direction:column; gap:4px; }
+  .tl-field-label input{ font-size:13px; font-weight:700; color:var(--ink); }
+  .tl-unified-row{ background:var(--paper); padding:14px 16px; border-radius:14px; border:2px solid var(--paper-darker); transition:border-color .2s var(--ease); }
+  .tl-unified-row.is-customized{ border-color:var(--jade); }
+  .tl-customized-badge{ display:inline-block; font-size:10px; font-weight:800; color:#fff; background:var(--jade); border-radius:999px; padding:2px 8px; margin-left:6px; vertical-align:middle; }
+  .tl-group-title{ font-size:10.5px; font-weight:800; color:var(--seal-dark); text-transform:uppercase; letter-spacing:.02em; margin:10px 0 6px; }
+  .tl-group-title:first-of-type{ margin-top:0; }
+  .tl-group-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
 
   .link-btn{ background:none; border:none; color:var(--jade); font-size:13px; cursor:pointer; font-weight:700; text-decoration:underline; padding:0; }
   .corner-note{ position:fixed; top:12px; left:14px; font-size:11px; color:var(--seal-dark); z-index:50; font-weight:700; background:var(--accent-light); padding:6px 12px; border-radius:999px; border:1px solid rgba(47,158,82,0.3); box-shadow:var(--shadow-soft); }
@@ -1091,6 +1103,7 @@
         Số từ ngẫu nhiên:
         <input type="number" id="wc-count" min="1" max="10" value="3" style="width:70px;">
       </label>
+      <span id="wc-count-hint" style="font-size:11px; color:var(--ink-soft);"></span>
       <button class="btn btn-primary" id="wc-roll-btn">🎲 Chọn từ ngẫu nhiên</button>
     </div>
     <div id="wc-area"><div class="empty-note">Bấm nút trên để bắt đầu thử thách đặt câu nhé! 🐼</div></div>
@@ -1253,6 +1266,17 @@
         <div id="teacher-class-list-manage" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
 
+      <!-- TỔNG HỢP BXH NHANH ĐỂ GỬI ZALO -->
+      <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
+        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">📊 Tổng Hợp BXH Nhanh (Gửi Zalo)</h4>
+        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:12px;">Bấm nút bên dưới để chốt nhanh <strong>Top 3 dẫn đầu</strong> và <strong>cảnh báo Top 3 đang tụt lại</strong> của lớp <span id="cms-lbsum-class-label" style="font-weight:700;"></span> ngay tại thời điểm bấm nút (dữ liệu lấy trực tiếp từ server mới nhất, không tính tài khoản của Thầy/Cô đang mở để xem lớp). Sau đó bấm Copy để dán thẳng vào nhóm Zalo lớp.</p>
+        <button class="btn btn-primary" id="cms-gen-lb-summary-btn">📊 Tạo Bản Tổng Hợp BXH Ngay</button>
+        <div id="cms-lb-summary-result" style="display:none; margin-top:14px;">
+          <textarea id="cms-lb-summary-text" readonly style="width:100%; min-height:180px; font-family:var(--mono); font-size:13px; line-height:1.6; padding:14px; border-radius:14px; border:2px solid var(--paper-darker); background:var(--paper); color:var(--ink); resize:vertical;"></textarea>
+          <button class="btn btn-ok" id="cms-copy-lb-summary-btn" style="margin-top:10px;">📋 Copy Để Gửi Zalo</button>
+        </div>
+      </div>
+
       <!-- QUẢN LÝ & XÓA TÀI KHOẢN HỌC VIÊN -->
       <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
         <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">👥 Thành Viên Của Lớp Đang Chọn</h4>
@@ -1409,57 +1433,58 @@
         </div>
       </div>
 
-      <!-- TÁCH LIST & ĐIỂM TRÚC THỬ THÁCH THỜI GIAN CMS -->
+      <!-- THIẾT LẬP TRÚC & CẤU HÌNH THEO TỪNG BÀI (GỘP CHUNG) CMS -->
       <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
-        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🎲 Tách List & Điểm Trúc Thử Thách Thời Gian (Lớp Hiện Tại)</h4>
-        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Với các list dài, học viên có thể chọn tách ngẫu nhiên một phần để kiểm tra (tối thiểu số từ cấu hình bên dưới) thay vì phải làm hết cả list. Thầy/Cô có thể đặt riêng <strong>Số từ tối thiểu</strong>, <strong>Điểm Trúc Full List</strong> và <strong>Điểm Trúc Khi Tách List</strong> cho từng list bên dưới — căn cứ vào độ dài / mục tiêu của từng list để chỉnh cho phù hợp; list nào không tùy chỉnh riêng sẽ dùng mức mặc định chung (Trúc Khi Tách List mặc định = nửa Trúc Full List).</p>
+        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🎋 Thiết Lập Trúc & Cấu Hình Theo Từng Bài (Lớp Hiện Tại)</h4>
+        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Mỗi bài (list / chủ đề) giờ gom vào <strong>1 dòng duy nhất</strong> gồm đủ 3 mục: <strong>🎲 Thử Thách Thời Gian</strong> (số từ tối thiểu tách list, Trúc Full List, Trúc Tách List), <strong>📝 Kiểm Tra</strong> (số câu tối thiểu, Trúc Full List, Trúc Tách List, Ngưỡng % tối thiểu nhận Trúc, ngưỡng % sai chạy lại), <strong>🀄 Kiểm Tra Pinyin</strong> (số câu tối thiểu, Trúc Full List, Trúc Tách List, Ngưỡng % tối thiểu nhận Trúc, ngưỡng % sai chạy lại) và <strong>✍️ Đặt Câu</strong> (số từ tối thiểu ngẫu nhiên) — mỗi mục Kiểm Tra / Kiểm Tra Pinyin đều <u>độc lập hoàn toàn</u> với nhau và với Thử Thách Thời Gian, chỉnh xong bấm <strong>1 nút Lưu</strong> là áp dụng hết cho bài đó. Bài nào không tùy chỉnh riêng sẽ tự dùng Mức Mặc Định Chung bên dưới. <strong>Lưu ý:</strong> mọi ô Trúc (Full List / Tách List) đều có thể nhập <strong>0</strong> — dùng khi list đó học sinh đã ôn kỹ và có xu hướng làm lại nhiều lần để "spam" Trúc, giáo viên đặt 0 để tắt hẳn thưởng cho tính năng đó ở list này mà không ảnh hưởng các list khác.</p>
+        <p style="font-size:11px; color:var(--ink-soft); margin:-8px 0 14px; font-style:italic;">💡 Ô để trống = dùng Mức Mặc Định Chung; nhập số (kể cả 0) = ghi đè riêng cho bài đó.</p>
 
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; background:var(--paper); padding:12px 14px; border-radius:14px; border:2px solid var(--paper-darker);">
-          <label style="font-size:13px; font-weight:700;">Số từ tối thiểu mặc định (áp dụng cho list chưa tùy chỉnh riêng):</label>
-          <input type="number" id="tl-min-split-count" min="1" value="20" style="width:90px;">
-          <button class="btn btn-primary" id="tl-save-min-split-btn" style="font-size:12px; padding:8px 14px;">Lưu Mức Mặc Định</button>
+        <div style="background:var(--paper); padding:14px 16px; border-radius:14px; border:2px solid var(--paper-darker); margin-bottom:16px;">
+          <h5 style="margin:0 0 10px; color:var(--seal-dark); font-size:13px;">Mức Mặc Định Chung (áp dụng cho bài chưa tùy chỉnh riêng):</h5>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px 16px;">
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">🎲 Số từ tối thiểu tách list
+              <input type="number" id="tl-min-split-count" min="1" value="20">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">📝 Số câu tối thiểu Kiểm Tra
+              <input type="number" id="tl-qz-min-count" min="1" value="5">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">📝 Ngưỡng % tối thiểu nhận Trúc (Kiểm Tra)
+              <input type="number" id="tl-qz-threshold-pct" min="0" max="100" value="50">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">📝 Ngưỡng % sai chạy lại Kiểm Tra
+              <input type="number" id="tl-qz-restart-pct" min="0" max="100" value="50">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">🀄 Số câu tối thiểu Pinyin
+              <input type="number" id="tl-py-min-count" min="1" value="5">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">🀄 Ngưỡng % tối thiểu nhận Trúc (Pinyin)
+              <input type="number" id="tl-py-threshold-pct" min="0" max="100" value="50">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">🀄 Ngưỡng % sai chạy lại Pinyin
+              <input type="number" id="tl-py-restart-pct" min="0" max="100" value="50">
+            </label>
+            <label style="font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:4px;">✍️ Số từ tối thiểu ngẫu nhiên (Đặt Câu)
+              <input type="number" id="tl-wc-min-count" min="1" value="3">
+            </label>
+          </div>
+          <button class="btn btn-primary" id="tl-save-all-defaults-btn" style="margin-top:12px; font-size:12px; padding:8px 14px;">Lưu Tất Cả Mức Mặc Định</button>
         </div>
 
-        <h5 style="margin:0 0 8px; color:var(--seal-dark);">Tùy Chỉnh Riêng Theo Từng List:</h5>
-        <div id="tl-timed-rewards-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
-
-      <!-- SỐ CÂU TỐI THIỂU MỤC KIỂM TRA CMS -->
-      <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
-        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">📝 Số Câu Tối Thiểu Mục Kiểm Tra (Lớp Hiện Tại)</h4>
-        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Ở mục Kiểm Tra, học viên có thể tự chọn số câu muốn làm (hoặc bấm "Tất cả"), nhưng không được chọn ít hơn số câu tối thiểu do Thầy/Cô cấu hình. Nếu học viên chọn đủ số câu bằng cả list (Full List) sẽ được tính theo mức Trúc Full List; nếu chọn ít hơn (Tách List) sẽ tính theo mức Trúc Khi Tách List — cùng cơ chế với mục Thử Thách Thời Gian. Thầy/Cô có thể đặt riêng <strong>Số từ tối thiểu</strong>, <strong>Trúc Full List</strong> và <strong>Trúc Khi Tách List</strong> cho từng list bên dưới; list nào không tùy chỉnh riêng sẽ dùng mức mặc định chung (Trúc Khi Tách List mặc định = nửa Trúc Full List).</p>
-
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; background:var(--paper); padding:12px 14px; border-radius:14px; border:2px solid var(--paper-darker);">
-          <label style="font-size:13px; font-weight:700;">Số câu tối thiểu mặc định (áp dụng cho list chưa tùy chỉnh riêng):</label>
-          <input type="number" id="tl-qz-min-count" min="1" value="5" style="width:90px;">
-          <button class="btn btn-primary" id="tl-save-qz-min-btn" style="font-size:12px; padding:8px 14px;">Lưu Mức Mặc Định</button>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+          <input type="text" id="tl-unified-search" placeholder="🔍 Tìm bài / list theo tên..." style="flex:1; min-width:160px;">
+          <span id="tl-unified-count" style="font-size:12px; color:var(--ink-soft); white-space:nowrap;"></span>
         </div>
 
-        <h5 style="margin:0 0 8px; color:var(--seal-dark);">Tùy Chỉnh Riêng Theo Từng List:</h5>
-        <div id="tl-qz-min-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
-
-      <!-- KIỂM TRA PINYIN CMS -->
-      <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
-        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🀄 Bài Kiểm Tra Pinyin (Lớp Hiện Tại)</h4>
-        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Học viên nhìn Hán tự và chọn đúng Pinyin trong 4 đáp án (đáp án nhiễu bị chỉnh thanh điệu hoặc vận mẫu). Học viên có thể tự chọn số câu (không dưới mức tối thiểu bên dưới). Nếu tỉ lệ trả lời sai vượt quá % ngưỡng cấu hình, cả list sẽ tự xáo và làm lại từ đầu — không giới hạn thời gian làm bài. Nếu học viên làm đủ Full List sẽ tính theo mức Trúc Full List; nếu chọn ít câu hơn cả list (Tách List) sẽ tính theo mức Trúc Khi Tách List — cùng cơ chế với mục Thử Thách Thời Gian. Thầy/Cô có thể đặt riêng <strong>Số từ tối thiểu</strong>, <strong>Trúc Full List</strong> và <strong>Trúc Khi Tách List</strong> cho từng list bên dưới; list nào không tùy chỉnh riêng sẽ dùng mức mặc định chung (Trúc Khi Tách List mặc định = nửa Trúc Full List).</p>
-
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; background:var(--paper); padding:12px 14px; border-radius:14px; border:2px solid var(--paper-darker);">
-          <label style="font-size:13px; font-weight:700;">Số câu tối thiểu mặc định:</label>
-          <input type="number" id="tl-py-min-count" min="1" value="5" style="width:90px;">
-          <label style="font-size:13px; font-weight:700;">Ngưỡng % sai để chạy lại từ đầu:</label>
-          <input type="number" id="tl-py-restart-pct" min="0" max="100" value="50" style="width:90px;">
-          <button class="btn btn-primary" id="tl-save-py-min-btn" style="font-size:12px; padding:8px 14px;">Lưu Mức Mặc Định</button>
-        </div>
-
-        <h5 style="margin:0 0 8px; color:var(--seal-dark);">Tùy Chỉnh Riêng Theo Từng List:</h5>
-        <div id="tl-py-min-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <h5 style="margin:0 0 8px; color:var(--seal-dark);">Tùy Chỉnh Riêng Theo Từng Bài:</h5>
+        <div id="tl-unified-list" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
 
       <!-- REWARD MATRIX CMS -->
       <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
         <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🎋 Cấu Hình Tỷ Lệ Thưởng Trúc (Reward Matrix)</h4>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div><label style="font-size:12px; font-weight:700;">Thưởng Kiểm Tra (mặc định, khi list chưa cấu hình riêng):</label><input type="number" id="rm-quiz" value="10"></div>
+          <div><label style="font-size:12px; font-weight:700;">Thưởng Kiểm Tra Pinyin (mặc định, khi list chưa cấu hình riêng):</label><input type="number" id="rm-pinyin" value="10"></div>
           <div><label style="font-size:12px; font-weight:700;">Thưởng Thử Thách Thời Gian (mặc định, khi list chưa cấu hình riêng):</label><input type="number" id="rm-timed" value="10"></div>
           <div><label style="font-size:12px; font-weight:700;">Thưởng Chép Chính Tả:</label><input type="number" id="rm-dictation" value="15"></div>
           <div><label style="font-size:12px; font-weight:700;">Thưởng Đặt Câu:</label><input type="number" id="rm-sentence" value="15"></div>
@@ -1467,30 +1492,6 @@
           <div><label style="font-size:12px; font-weight:700;">Thưởng Streak 7 Ngày:</label><input type="number" id="rm-streak" value="30"></div>
         </div>
         <button class="btn btn-primary" id="cms-save-reward-btn" style="margin-top:12px;">Lưu Tỷ Lệ Thưởng 🎋</button>
-      </div>
-
-      <!-- QUIZ REWARD TIERS CMS -->
-      <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
-        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🎯 Cấu Hình Trúc Theo % Đúng (Mục Kiểm Tra)</h4>
-        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Đúng <strong>100%</strong> nhận full Trúc. Đúng <strong>dưới ngưỡng %</strong> bên dưới thì <strong>không nhận Trúc</strong>. Đúng ở khoảng giữa ngưỡng % và 100% thì nhận Trúc theo tỷ lệ nội suy giữa 2 mức.</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
-          <div><label style="font-size:12px; font-weight:700;">Ngưỡng % tối thiểu để nhận Trúc:</label><input type="number" id="rm-qz-threshold-pct" min="0" max="100" value="50"></div>
-          <div><label style="font-size:12px; font-weight:700;">Trúc tại đúng ngưỡng %:</label><input type="number" id="rm-qz-threshold-reward" min="0" value="3"></div>
-          <div><label style="font-size:12px; font-weight:700;">Trúc khi đúng 100%:</label><input type="number" id="rm-qz-full-reward" min="0" value="10"></div>
-        </div>
-        <button class="btn btn-primary" id="cms-save-qz-tiers-btn" style="margin-top:12px;">Lưu Cấu Hình Trúc Theo % 🎯</button>
-      </div>
-
-      <!-- PINYIN TEST REWARD TIERS CMS -->
-      <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px; margin-bottom:20px;">
-        <h4 style="margin:0 0 10px; color:var(--seal-dark); font-family:var(--serif);">🀄 Cấu Hình Trúc Theo % Đúng (Mục Kiểm Tra Pinyin)</h4>
-        <p style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Đúng <strong>100%</strong> nhận full Trúc. Đúng <strong>dưới ngưỡng %</strong> bên dưới thì <strong>không nhận Trúc</strong>. Đúng ở khoảng giữa ngưỡng % và 100% thì nhận Trúc theo tỷ lệ nội suy giữa 2 mức.</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
-          <div><label style="font-size:12px; font-weight:700;">Ngưỡng % tối thiểu để nhận Trúc:</label><input type="number" id="rm-py-threshold-pct" min="0" max="100" value="50"></div>
-          <div><label style="font-size:12px; font-weight:700;">Trúc tại đúng ngưỡng %:</label><input type="number" id="rm-py-threshold-reward" min="0" value="3"></div>
-          <div><label style="font-size:12px; font-weight:700;">Trúc khi đúng 100%:</label><input type="number" id="rm-py-full-reward" min="0" value="10"></div>
-        </div>
-        <button class="btn btn-primary" id="cms-save-py-tiers-btn" style="margin-top:12px;">Lưu Cấu Hình Trúc Theo % 🀄</button>
       </div>
 
       <!-- GRANT / DEDUCT BAMBOO CMS -->
@@ -1594,12 +1595,16 @@ const ANSWER_SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzQYTWaCo
    http-equiv="Cache-Control"> ở đầu file chỉ mang tính gợi ý, không đảm
    bảo trình duyệt/CDN luôn tải bản mới. Để khắc phục, app tự định kỳ tải
    lại CHÍNH file HTML này (kèm query-string ngẫu nhiên để buộc bỏ qua mọi
-   tầng cache), so sánh APP_BUILD_ID trong bản mới với bản đang chạy —
-   nếu khác nhau tức là Thầy Marcus vừa đẩy bản cập nhật lên GitHub, app
-   sẽ tự làm mới trang cho học viên (xem checkForNewVersion() bên dưới).
-   ‼️ MỖI LẦN sửa file rồi push lên GitHub, hãy đổi giá trị bên dưới
-   (vd sang ngày hôm đó) để cơ chế này nhận ra bản mới: */
-const APP_BUILD_ID = "20260813a";
+   tầng cache) và SO SÁNH HASH TOÀN BỘ NỘI DUNG file mới với bản đang
+   chạy — nếu khác nhau tức là Thầy Marcus vừa đẩy bản cập nhật lên
+   GitHub, app sẽ tự làm mới trang cho học viên (xem checkForNewVersion()
+   bên dưới). Cơ chế này 100% TỰ ĐỘNG — KHÔNG cần Thầy nhớ đổi bất cứ
+   giá trị nào mỗi lần push nữa (khác với bản cũ trước đây dùng
+   APP_BUILD_ID phải tự tay đổi, rất dễ quên và làm mất tác dụng).
+   APP_BUILD_ID dưới đây giờ chỉ còn mang tính GHI CHÚ NGÀY THÁNG cho
+   Thầy dễ theo dõi, đổi hay không đổi đều không ảnh hưởng gì tới việc
+   tự phát hiện bản mới: */
+const APP_BUILD_ID = "20260815a";
 
 /* ==== SUPABASE (Bước 2) ====
    Dán Project URL + anon key của bạn vào đây — lấy ở Supabase Dashboard
@@ -1630,6 +1635,7 @@ const SUPABASE_ACTIONS_ = {
   delete_class_members: { fn: "delete_class_members", params: { className: "p_class_name" } },
   grant_bamboo: { fn: "grant_bamboo", params: { username: "p_username", amount: "p_amount", reason: "p_reason" } },
   award_badge: { fn: "award_badge", params: { username: "p_username", badgeId: "p_badge_id", xp: "p_xp", charm: "p_charm", badgeTitle: "p_badge_title", badgeIcon: "p_badge_icon" } },
+  transfer_decoration: { fn: "transfer_decoration", params: { senderUsername: "p_sender_username", recipientUsername: "p_recipient_username", itemId: "p_item_id" } },
   get_shared_config: { fn: "get_shared_config", params: {} },
   save_shared_config: { fn: "save_shared_config", params: { config: "p_config" } }
 };
@@ -2235,6 +2241,12 @@ function sanitizeState(s) {
       if (!cData.timedListRewards || typeof cData.timedListRewards !== "object") cData.timedListRewards = {};
       if (!cData.timedMinSplitCounts || typeof cData.timedMinSplitCounts !== "object") cData.timedMinSplitCounts = {};
       if (!cData.timedSplitRewards || typeof cData.timedSplitRewards !== "object") cData.timedSplitRewards = {};
+      if (!cData.qzFullRewards || typeof cData.qzFullRewards !== "object") cData.qzFullRewards = {};
+      if (!cData.qzSplitRewards || typeof cData.qzSplitRewards !== "object") cData.qzSplitRewards = {};
+      if (!cData.qzThresholds || typeof cData.qzThresholds !== "object") cData.qzThresholds = {};
+      if (!cData.pyFullRewards || typeof cData.pyFullRewards !== "object") cData.pyFullRewards = {};
+      if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
+      if (!cData.pyThresholds || typeof cData.pyThresholds !== "object") cData.pyThresholds = {};
       if (typeof cData.password !== "string") cData.password = "123";
       ensureClassTestDefaults(cData);
     }
@@ -2287,9 +2299,10 @@ function sanitizeState(s) {
   }
 
   if (!g.rewardMatrix || typeof g.rewardMatrix !== "object") {
-    g.rewardMatrix = { quiz: 10, timed: 10, dictation: 15, sentence: 15, grammar: 20, streak: 30, classTest: 25 };
+    g.rewardMatrix = { quiz: 10, pinyin: 10, timed: 10, dictation: 15, sentence: 15, grammar: 20, streak: 30, classTest: 25 };
   } else {
     if (typeof g.rewardMatrix.quiz !== "number") g.rewardMatrix.quiz = 10;
+    if (typeof g.rewardMatrix.pinyin !== "number") g.rewardMatrix.pinyin = 10;
     if (typeof g.rewardMatrix.timed !== "number") g.rewardMatrix.timed = 10;
     if (typeof g.rewardMatrix.dictation !== "number") g.rewardMatrix.dictation = 15;
     if (typeof g.rewardMatrix.sentence !== "number") g.rewardMatrix.sentence = 15;
@@ -2299,26 +2312,24 @@ function sanitizeState(s) {
   }
 
   /* Cấu hình Trúc theo % đúng cho mục Kiểm Tra (Quiz):
-     - Dưới passThreshold% : không nhận Trúc (0)
-     - Đúng đúng passThreshold% : nhận rewardAtThreshold Trúc
-     - Đúng 100% : nhận rewardFull Trúc
-     - Ở giữa passThreshold% và 100% : nội suy tuyến tính giữa 2 mức trên */
+     - Dưới passThreshold% (mặc định chung, có thể ghi đè riêng theo từng
+       list qua cData.qzThresholds) : không nhận Trúc (0)
+     - Từ passThreshold% trở lên : nhận full Trúc theo mức đã cấu hình RIÊNG
+       cho mục 📝 Kiểm Tra của từng list (Trúc Full List / Trúc Tách List) */
   if (!g.quizRewardTiers || typeof g.quizRewardTiers !== "object") {
-    g.quizRewardTiers = { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
+    g.quizRewardTiers = { passThreshold: 50 };
   } else {
     if (typeof g.quizRewardTiers.passThreshold !== "number") g.quizRewardTiers.passThreshold = 50;
-    if (typeof g.quizRewardTiers.rewardAtThreshold !== "number") g.quizRewardTiers.rewardAtThreshold = 3;
-    if (typeof g.quizRewardTiers.rewardFull !== "number") g.quizRewardTiers.rewardFull = 10;
   }
 
-  /* Cấu hình Trúc theo % đúng cho mục Kiểm Tra Pinyin — tương tự quizRewardTiers
-     ở trên nhưng dùng riêng cho mục Kiểm Tra Pinyin. */
+  /* Cấu hình Trúc theo % đúng cho mục Kiểm Tra Pinyin — CÙNG cơ chế với
+     quizRewardTiers ở trên (không còn nội suy theo %), dùng riêng ngưỡng %
+     mặc định chung cho mục Kiểm Tra Pinyin; số Trúc thực tế lấy từ Trúc Full
+     List / Trúc Tách List đã cấu hình riêng cho từng list ở mục 🀄. */
   if (!g.pinyinRewardTiers || typeof g.pinyinRewardTiers !== "object") {
-    g.pinyinRewardTiers = { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
+    g.pinyinRewardTiers = { passThreshold: 50 };
   } else {
     if (typeof g.pinyinRewardTiers.passThreshold !== "number") g.pinyinRewardTiers.passThreshold = 50;
-    if (typeof g.pinyinRewardTiers.rewardAtThreshold !== "number") g.pinyinRewardTiers.rewardAtThreshold = 3;
-    if (typeof g.pinyinRewardTiers.rewardFull !== "number") g.pinyinRewardTiers.rewardFull = 10;
   }
 
   if (typeof g.announcement !== "string") {
@@ -2549,6 +2560,15 @@ function describeServerError(res) {
       return "Tài khoản này chưa tồn tại. Vui lòng đăng ký trước khi đăng nhập.";
     case "username_taken":
       return "Tên đăng nhập đã tồn tại.";
+    case "cannot_gift_self":
+      return "Không thể tự tặng đồ cho chính mình!";
+    case "recipient_not_found":
+    case "sender_not_found":
+      return "Không tìm thấy tài khoản trên máy chủ (danh sách có thể chưa đồng bộ xong) — hãy thử lại sau vài giây.";
+    case "item_not_owned":
+      return "Bạn không còn sở hữu đạo cụ này (có thể đã tặng ở thiết bị khác rồi) — hãy tải lại trang.";
+    case "recipient_already_owns":
+      return "Bạn học này đã sở hữu đạo cụ này rồi, không thể tặng trùng.";
     case "exception":
       return "Máy chủ gặp lỗi khi xử lý" + (res && res.message ? (": " + res.message) : "") + ". Vui lòng thử lại, nếu còn lặp lại hãy kiểm tra mục Executions trong Apps Script.";
     default:
@@ -2834,34 +2854,111 @@ function stopLiveSync() {
    ---------------------------------------------------------
    GitHub Pages không hỗ trợ Cache-Control tùy chỉnh, nên trình duyệt
    (và CDN Fastly của GitHub) có thể giữ lại bản HTML/JS cũ trong nhiều
-   phút dù Thầy đã push bản mới. Hàm dưới đây tự tải lại CHÍNH file này
-   qua network (kèm query-string ngẫu nhiên để chắc chắn không dính bản
-   cache nào), đọc APP_BUILD_ID trong bản mới đó, và so với bản đang
-   chạy trên máy học viên. Nếu khác nhau -> tự động làm mới trang, học
-   viên không cần bấm Ctrl+F5. Đăng nhập của học viên KHÔNG bị mất vì
+   phút — thậm chí có khi trình duyệt còn KHÔNG gửi request nào lên
+   mạng khi mở lại trang mà lấy thẳng bản đã lưu trong ổ đĩa máy học
+   viên (disk cache), khiến JS cũ chạy mà không hề hay biết đã có bản
+   mới trên server.
+
+   ‼️ LƯU Ý QUAN TRỌNG (bản cũ trước đây từng bị): cơ chế cũ so sánh
+   một hằng số APP_BUILD_ID phải TỰ TAY đổi mỗi lần push code — nếu
+   Thầy quên đổi (rất dễ quên!) thì App sẽ KHÔNG BAO GIỜ phát hiện ra
+   bản mới, học viên buộc phải Ctrl+Shift+R thủ công. Để triệt để khắc
+   phục, cơ chế bên dưới tự SO SÁNH TOÀN BỘ NỘI DUNG file HTML thật sự
+   đang nằm trên GitHub (tải mới qua network, cache:"no-store" + query
+   ngẫu nhiên để né mọi tầng cache) — không cần Thầy nhớ đổi bất cứ
+   biến nào nữa, chỉ cần Thầy push code là hệ thống tự nhận ra.
+
+   Để phát hiện được cả tình huống học viên vừa mở tab và ngay lập tức
+   dính bản cache cũ (tức là request mạng đầu tiên có thể "muộn" hơn so
+   với bản đang hiển thị), hash của bản tải mới nhất được LƯU VÀO
+   localStorage (bền vững qua các lần mở lại trang trên cùng thiết bị)
+   — mỗi lần mở trang, App so hash mới tải với hash đã lưu từ lần trước;
+   nếu khác nhau (dù trang đang hiển thị là bản cũ tới đâu) -> tự làm
+   mới ngay lập tức. Đăng nhập của học viên KHÔNG bị mất vì
    checkAutoSession() sẽ tự đăng nhập lại từ localStorage sau khi tải lại.
    ========================================================= */
+const LAST_KNOWN_PAGE_HASH_KEY = "zhVocabApp_lastKnownPageHash_v1";
 let _newVersionReloadTriggered = false;
+
+/* Các màn hình đang "làm bài" — nếu phát hiện bản mới đúng lúc học viên
+   đang ở đây, KHÔNG reload ngay (sẽ mất bài đang làm dở), mà hoãn lại,
+   chỉ áp dụng khi họ rời sang màn hình khác (xem applyPendingReload_
+   và hook trong activateView()). */
+const EXAM_LIKE_VIEW_IDS_ = ["view-quiz", "view-pinyintest", "view-timed", "view-wordchallenge", "view-classtest", "view-dictation"];
+function isInExamLikeView_() {
+  const activeView = document.querySelector("section.view.active");
+  return !!(activeView && EXAM_LIKE_VIEW_IDS_.includes(activeView.id));
+}
+
+let _pendingReloadHash = null;
+let _pendingReloadNoticeShown = false;
+
+function applyPendingReload_() {
+  if (!_pendingReloadHash || _newVersionReloadTriggered) return;
+  _newVersionReloadTriggered = true;
+  try { localStorage.setItem(LAST_KNOWN_PAGE_HASH_KEY, _pendingReloadHash); } catch (e) {}
+  showToast("🔄 Đang cập nhật lên phiên bản mới nhất...", "success");
+  setTimeout(() => {
+    window.location.href = location.pathname + "?_v=" + Date.now();
+  }, 1200);
+}
+
+async function hashPageText_(text) {
+  try {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) {
+    /* Trình duyệt/ngữ cảnh không hỗ trợ crypto.subtle (hiếm gặp) ->
+       dùng hash đơn giản dự phòng, vẫn đủ để phát hiện thay đổi nội dung. */
+    let h = 0;
+    for (let i = 0; i < text.length; i++) {
+      h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
+    }
+    return "fallback_" + h + "_" + text.length;
+  }
+}
+
 async function checkForNewVersion() {
   if (_newVersionReloadTriggered) return;
   try {
     const res = await fetch(location.pathname + "?_freshcheck=" + Date.now(), { cache: "no-store" });
     if (!res.ok) return;
     const html = await res.text();
-    const m = html.match(/const APP_BUILD_ID\s*=\s*"([^"]+)"/);
-    if (m && m[1] && m[1] !== APP_BUILD_ID) {
-      _newVersionReloadTriggered = true;
-      showToast("🔄 Đang cập nhật lên phiên bản mới nhất...", "success");
-      setTimeout(() => {
-        window.location.href = location.pathname + "?_v=" + Date.now();
-      }, 1200);
+    const freshHash = await hashPageText_(html);
+
+    let lastKnownHash = null;
+    try { lastKnownHash = localStorage.getItem(LAST_KNOWN_PAGE_HASH_KEY); } catch (e) {}
+
+    if (lastKnownHash === null) {
+      /* Lần đầu tiên thiết bị này chạy cơ chế kiểm tra -> chỉ lưu mốc
+         tham chiếu, chưa có gì để so sánh nên chưa reload. */
+      try { localStorage.setItem(LAST_KNOWN_PAGE_HASH_KEY, freshHash); } catch (e) {}
+      return;
     }
+
+    if (freshHash === lastKnownHash) return;
+
+    /* Có bản mới thật sự khác bản đang chạy. */
+    _pendingReloadHash = freshHash;
+    if (isInExamLikeView_()) {
+      /* Học viên đang làm bài -> hoãn reload để không mất bài giữa chừng.
+         Sẽ tự áp dụng ngay khi họ chuyển sang màn hình khác (xem
+         activateView()), hoặc ở lượt kiểm tra định kỳ kế tiếp nếu lúc đó
+         họ đã rời khỏi màn hình làm bài. */
+      if (!_pendingReloadNoticeShown) {
+        _pendingReloadNoticeShown = true;
+        showToast("📌 Đã có bản cập nhật mới — sẽ tự áp dụng ngay sau khi bạn làm xong phần này nhé", "info");
+      }
+      return;
+    }
+    applyPendingReload_();
   } catch (e) {
     /* Lỗi mạng thoáng qua -> im lặng bỏ qua, thử lại ở lượt kiểm tra kế tiếp */
   }
 }
 
-const VERSION_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 phút — đủ nhanh, không tốn băng thông
+const VERSION_CHECK_INTERVAL_MS = 3 * 60 * 1000; // 3 phút — đủ nhanh, không tốn băng thông
 let _versionCheckTimer = null;
 function startVersionCheckWatcher() {
   if (_versionCheckTimer) return;
@@ -3069,18 +3166,43 @@ function getTimedListReward(topic) {
   const cData = getCurrentClassData();
   if (!cData.timedListRewards || typeof cData.timedListRewards !== "object") cData.timedListRewards = {};
   const custom = cData.timedListRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
+  if (typeof custom === "number" && custom >= 0) return custom;
   return state.gamification?.rewardMatrix?.timed || 10;
 }
 
 /* Trúc thưởng khi làm chế độ "Tách Ngẫu Nhiên Một Phần" cho 1 list cụ thể: ưu tiên số giáo viên đã
-   tùy chỉnh riêng cho list đó; nếu chưa cấu hình thì mặc định lấy nửa số Trúc Full List (làm tròn xuống, tối thiểu 1). */
+   tùy chỉnh riêng cho list đó (kể cả 0 — dùng khi list đã được ôn kỹ, tránh học sinh làm lại để
+   spam Trúc); nếu chưa cấu hình thì mặc định lấy nửa số Trúc Full List (làm tròn xuống, tối thiểu 1). */
 function getTimedSplitReward(topic) {
   const cData = getCurrentClassData();
   if (!cData.timedSplitRewards || typeof cData.timedSplitRewards !== "object") cData.timedSplitRewards = {};
   const custom = cData.timedSplitRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
+  if (typeof custom === "number" && custom >= 0) return custom;
   return Math.max(1, Math.floor(getTimedListReward(topic) / 2));
+}
+
+/* Trúc thưởng khi làm "Tất cả" câu ở mục Kiểm Tra cho 1 list cụ thể: ưu tiên số
+   giáo viên đã tùy chỉnh riêng cho list đó (qzFullRewards, kể cả 0 — dùng khi
+   list đã được ôn kỹ, tránh học sinh làm lại để spam Trúc), nếu chưa tùy chỉnh
+   thì dùng mức mặc định chung (rewardMatrix.quiz). Độc lập hoàn toàn với Trúc
+   của mục Thử Thách Thời Gian. */
+function getQuizFullReward(topic) {
+  const cData = getCurrentClassData();
+  if (!cData.qzFullRewards || typeof cData.qzFullRewards !== "object") cData.qzFullRewards = {};
+  const custom = cData.qzFullRewards[topic];
+  if (typeof custom === "number" && custom >= 0) return custom;
+  return state.gamification?.rewardMatrix?.quiz || 10;
+}
+
+/* Trúc thưởng khi chỉ chọn làm một phần số câu ở mục Kiểm Tra cho 1 list cụ thể:
+   ưu tiên số giáo viên đã tùy chỉnh riêng (kể cả 0); nếu chưa cấu hình thì mặc
+   định lấy nửa số Trúc Full List của mục Kiểm Tra (làm tròn xuống, tối thiểu 1). */
+function getQuizSplitReward(topic) {
+  const cData = getCurrentClassData();
+  if (!cData.qzSplitRewards || typeof cData.qzSplitRewards !== "object") cData.qzSplitRewards = {};
+  const custom = cData.qzSplitRewards[topic];
+  if (typeof custom === "number" && custom >= 0) return custom;
+  return Math.max(1, Math.floor(getQuizFullReward(topic) / 2));
 }
 
 /* Số câu tối thiểu học viên phải chọn khi làm mục Kiểm Tra: ưu tiên số giáo viên đã tùy chỉnh
@@ -3105,6 +3227,18 @@ function getPyMinCount(topic) {
   return (typeof state.pyMinCount === "number" && state.pyMinCount > 0) ? state.pyMinCount : 5;
 }
 
+/* Số từ tối thiểu học viên phải chọn ngẫu nhiên khi làm mục Đặt Câu: tương
+   tự getPyMinCount() / getQuizMinCount() ở trên nhưng dùng cấu hình riêng
+   cho mục này (wcMinCounts theo từng list, hoặc mức mặc định chung). */
+function getWcMinCount(topic) {
+  if (topic && topic !== "all") {
+    const cData = getCurrentClassData();
+    const custom = cData?.wcMinCounts?.[topic];
+    if (typeof custom === "number" && custom > 0) return custom;
+  }
+  return (typeof state.wcMinCount === "number" && state.wcMinCount > 0) ? state.wcMinCount : 3;
+}
+
 /* Ngưỡng % sai tối đa trước khi bài Kiểm Tra Pinyin tự động xáo lại và chạy
    lại từ đầu (học đến khi thuộc chắc mới thôi) — ưu tiên cấu hình riêng
    theo từng list, nếu chưa tùy chỉnh thì dùng mức mặc định chung. */
@@ -3117,78 +3251,92 @@ function getPyRestartThreshold(topic) {
   return (typeof state.pyRestartThreshold === "number" && state.pyRestartThreshold >= 0) ? state.pyRestartThreshold : 50;
 }
 
-/* Trúc thưởng "Full List" cho mục Kiểm Tra (Quiz) của 1 list cụ thể — ưu tiên số giáo
-   viên đã tùy chỉnh riêng cho list đó, nếu chưa cấu hình thì dùng mức Trúc Full List
-   chung (quizRewardTiers.rewardFull, cấu hình ở Reward Matrix). Cùng cơ chế với
-   getTimedListReward() ở Thử Thách Thời Gian. */
-function getQuizListReward(topic) {
-  const cData = getCurrentClassData();
-  if (!cData.qzListRewards || typeof cData.qzListRewards !== "object") cData.qzListRewards = {};
-  const custom = cData.qzListRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
-  return state.gamification?.quizRewardTiers?.rewardFull || 10;
+/* Ngưỡng % sai tối đa trước khi bài Kiểm Tra thường tự động xáo lại và chạy
+   lại từ đầu — cùng cơ chế với getPyRestartThreshold() nhưng dùng cấu hình
+   riêng cho mục Kiểm Tra, độc lập hoàn toàn với Kiểm Tra Pinyin. Ưu tiên
+   cấu hình riêng theo từng list, nếu chưa tùy chỉnh thì dùng mức mặc định
+   chung. */
+function getQuizRestartThreshold(topic) {
+  if (topic && topic !== "all") {
+    const cData = getCurrentClassData();
+    const custom = cData?.qzRestartThresholds?.[topic];
+    if (typeof custom === "number" && custom >= 0) return custom;
+  }
+  return (typeof state.qzRestartThreshold === "number" && state.qzRestartThreshold >= 0) ? state.qzRestartThreshold : 50;
 }
 
-/* Trúc thưởng khi làm chế độ "Tách Ngẫu Nhiên Một Phần" cho mục Kiểm Tra (Quiz) của 1
-   list cụ thể — ưu tiên số giáo viên đã tùy chỉnh riêng; nếu chưa cấu hình thì mặc định
-   lấy nửa số Trúc Full List (làm tròn xuống, tối thiểu 1). */
-function getQuizSplitReward(topic) {
-  const cData = getCurrentClassData();
-  if (!cData.qzSplitRewards || typeof cData.qzSplitRewards !== "object") cData.qzSplitRewards = {};
-  const custom = cData.qzSplitRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
-  return Math.max(1, Math.floor(getQuizListReward(topic) / 2));
-}
-
-/* Trúc thưởng "Full List" cho mục Kiểm Tra Pinyin của 1 list cụ thể — tương tự
-   getQuizListReward() nhưng dùng cấu hình riêng cho mục Kiểm Tra Pinyin. */
-function getPyListReward(topic) {
-  const cData = getCurrentClassData();
-  if (!cData.pyListRewards || typeof cData.pyListRewards !== "object") cData.pyListRewards = {};
-  const custom = cData.pyListRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
-  return state.gamification?.pinyinRewardTiers?.rewardFull || 10;
-}
-
-/* Trúc thưởng khi làm chế độ "Tách Ngẫu Nhiên Một Phần" cho mục Kiểm Tra Pinyin của 1
-   list cụ thể — tương tự getQuizSplitReward() nhưng dùng cấu hình riêng cho mục Kiểm
-   Tra Pinyin. */
-function getPySplitReward(topic) {
-  const cData = getCurrentClassData();
-  if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
-  const custom = cData.pySplitRewards[topic];
-  if (typeof custom === "number" && custom > 0) return custom;
-  return Math.max(1, Math.floor(getPyListReward(topic) / 2));
+/* Ngưỡng % tối thiểu để nhận Trúc ở mục Kiểm Tra: ưu tiên cấu hình riêng theo
+   từng list (qzThresholds), nếu list đó chưa tùy chỉnh thì dùng ngưỡng mặc
+   định chung (quizRewardTiers.passThreshold). Khác với qzRestartThresholds
+   (ngưỡng % sai để tự xáo lại bài, không liên quan Trúc). */
+function getQuizPassThreshold(topic) {
+  if (topic && topic !== "all") {
+    const cData = getCurrentClassData();
+    const custom = cData?.qzThresholds?.[topic];
+    if (typeof custom === "number" && custom >= 0) return custom;
+  }
+  const tiers = state.gamification?.quizRewardTiers || { passThreshold: 50 };
+  return (typeof tiers.passThreshold === "number") ? tiers.passThreshold : 50;
 }
 
 /* Tính số Trúc thưởng cho bài Kiểm Tra dựa trên % đúng, theo cấu hình giáo viên:
-   - Dưới ngưỡng passThreshold%: 0 Trúc
-   - Đúng 100%: rewardFull Trúc
-   - Ở giữa: nội suy tuyến tính giữa rewardAtThreshold (tại passThreshold%) và rewardFull (tại 100%) */
-function computeQuizReward(pct, rewardFullOverride) {
-  const tiers = state.gamification?.quizRewardTiers || { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
-  const passThreshold = tiers.passThreshold;
-  const rewardAtThreshold = tiers.rewardAtThreshold;
-  const rewardFull = (typeof rewardFullOverride === "number" && rewardFullOverride > 0) ? rewardFullOverride : tiers.rewardFull;
+   - Dưới ngưỡng % tối thiểu riêng của list (hoặc mặc định chung): 0 Trúc
+   - Từ ngưỡng % trở lên: nhận full Trúc theo mức Trúc đã cấu hình RIÊNG cho
+     mục Kiểm Tra của từng list (độc lập với Thử Thách Thời Gian) — Trúc Full
+     List (Kiểm Tra) nếu học viên chọn làm "Tất cả" (useAll), hoặc Trúc Tách
+     List (Kiểm Tra) nếu học viên chỉ chọn làm một phần số câu. */
+function computeQuizReward(pct, topic, useAll) {
+  const passThreshold = getQuizPassThreshold(topic);
   if (pct < passThreshold) return 0;
-  if (pct >= 100) return rewardFull;
-  if (passThreshold >= 100) return rewardFull;
-  const ratio = (pct - passThreshold) / (100 - passThreshold);
-  return Math.max(0, Math.round(rewardAtThreshold + (rewardFull - rewardAtThreshold) * ratio));
+  return useAll ? getQuizFullReward(topic) : getQuizSplitReward(topic);
 }
 
-/* Tính số Trúc thưởng cho bài Kiểm Tra Pinyin dựa trên % đúng — dùng cấu
-   hình riêng (pinyinRewardTiers), theo cùng công thức với computeQuizReward(). */
-function computePinyinTestReward(pct, rewardFullOverride) {
-  const tiers = state.gamification?.pinyinRewardTiers || { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
-  const passThreshold = tiers.passThreshold;
-  const rewardAtThreshold = tiers.rewardAtThreshold;
-  const rewardFull = (typeof rewardFullOverride === "number" && rewardFullOverride > 0) ? rewardFullOverride : tiers.rewardFull;
+/* Trúc thưởng khi làm "Tất cả" câu ở mục Kiểm Tra Pinyin cho 1 list cụ thể —
+   cùng cơ chế với getQuizFullReward() nhưng dùng cấu hình riêng cho Pinyin,
+   độc lập hoàn toàn với mục Kiểm Tra thường. */
+function getPinyinFullReward(topic) {
+  const cData = getCurrentClassData();
+  if (!cData.pyFullRewards || typeof cData.pyFullRewards !== "object") cData.pyFullRewards = {};
+  const custom = cData.pyFullRewards[topic];
+  if (typeof custom === "number" && custom >= 0) return custom;
+  return state.gamification?.rewardMatrix?.pinyin || 10;
+}
+
+/* Trúc thưởng khi chỉ chọn làm một phần số câu ở mục Kiểm Tra Pinyin cho 1
+   list cụ thể; nếu chưa cấu hình thì mặc định lấy nửa số Trúc Full List
+   Pinyin (làm tròn xuống, tối thiểu 1). Ưu tiên số giáo viên đã tùy chỉnh
+   riêng, kể cả 0 — dùng khi list đã được ôn kỹ, tránh học sinh làm lại để
+   spam Trúc. */
+function getPinyinSplitReward(topic) {
+  const cData = getCurrentClassData();
+  if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
+  const custom = cData.pySplitRewards[topic];
+  if (typeof custom === "number" && custom >= 0) return custom;
+  return Math.max(1, Math.floor(getPinyinFullReward(topic) / 2));
+}
+
+/* Ngưỡng % tối thiểu để nhận Trúc ở mục Kiểm Tra Pinyin: ưu tiên cấu hình
+   riêng theo từng list (pyThresholds), nếu chưa tùy chỉnh thì dùng ngưỡng
+   mặc định chung (pinyinRewardTiers.passThreshold). Khác với
+   pyRestartThresholds (ngưỡng % sai để tự xáo lại bài, không liên quan Trúc). */
+function getPinyinPassThreshold(topic) {
+  if (topic && topic !== "all") {
+    const cData = getCurrentClassData();
+    const custom = cData?.pyThresholds?.[topic];
+    if (typeof custom === "number" && custom >= 0) return custom;
+  }
+  const tiers = state.gamification?.pinyinRewardTiers || { passThreshold: 50 };
+  return (typeof tiers.passThreshold === "number") ? tiers.passThreshold : 50;
+}
+
+/* Tính số Trúc thưởng cho bài Kiểm Tra Pinyin dựa trên % đúng — dùng CÙNG cơ
+   chế với computeQuizReward(): dưới ngưỡng % thì 0 Trúc, từ ngưỡng % trở lên
+   thì nhận full Trúc theo Trúc Full List / Trúc Tách List đã cấu hình riêng
+   cho mục Kiểm Tra Pinyin của list đó. */
+function computePinyinTestReward(pct, topic, useAll) {
+  const passThreshold = getPinyinPassThreshold(topic);
   if (pct < passThreshold) return 0;
-  if (pct >= 100) return rewardFull;
-  if (passThreshold >= 100) return rewardFull;
-  const ratio = (pct - passThreshold) / (100 - passThreshold);
-  return Math.max(0, Math.round(rewardAtThreshold + (rewardFull - rewardAtThreshold) * ratio));
+  return useAll ? getPinyinFullReward(topic) : getPinyinSplitReward(topic);
 }
 
 function fillTopicSelect(sel, includeAll = true) {
@@ -4224,7 +4372,10 @@ function renderGiftModal(defaultTargetPeer = null) {
     return;
   }
 
-  const peers = (state.gamification?.peers || []).filter(p => p.name !== state.studentName);
+  /* FIX: lọc bản thân bằng username (đảm bảo duy nhất) thay vì name —
+     displayName KHÔNG đảm bảo duy nhất trong lớp, dùng name để so khớp
+     dễ lẫn nhầm giữa các học viên trùng tên. */
+  const peers = (state.gamification?.peers || []).filter(p => p.username !== state.username);
 
   if (peers.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--ink-soft);">Chưa có bạn học nào trong danh sách nhận quà.</div>`;
@@ -4238,10 +4389,12 @@ function renderGiftModal(defaultTargetPeer = null) {
     const card = document.createElement("div");
     card.style.cssText = "background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;";
 
+    /* FIX: value dùng username (khoá duy nhất) thay vì name để chọn
+       đúng người nhận, tránh nhầm giữa các học viên trùng tên. */
     let optionsHtml = peers.map(p => {
       const alreadyHas = Array.isArray(p.decorations) && p.decorations.includes(id);
       const tag = alreadyHas ? ' (Đã có vật phẩm này)' : '';
-      return `<option value="${p.name}" ${p.name === defaultTargetPeer ? 'selected' : ''}>🐼 ${p.name}${tag}</option>`;
+      return `<option value="${p.username}" ${p.username === defaultTargetPeer ? 'selected' : ''}>🐼 ${p.name}${tag}</option>`;
     }).join("");
 
     card.innerHTML = `
@@ -4264,23 +4417,26 @@ function renderGiftModal(defaultTargetPeer = null) {
     const sendBtn = card.querySelector(".gift-send-btn");
 
     sendBtn.addEventListener("click", () => {
-      const targetName = select.value;
-      if (!targetName) return;
-      giftDecorationToPeer(id, index, targetName);
+      const targetUsername = select.value;
+      if (!targetUsername) return;
+      giftDecorationToPeer(id, index, targetUsername);
     });
 
     container.appendChild(card);
   });
 }
 
-function giftDecorationToPeer(itemId, itemIndex, targetPeerName) {
+async function giftDecorationToPeer(itemId, itemIndex, targetUsername) {
   const g = state.gamification;
   if (!g) return;
 
   const item = BAMBOO_SHOP_ITEMS.find(x => x.id === itemId);
   if (!item) return;
 
-  const peer = (g.peers || []).find(p => p.name === targetPeerName);
+  /* FIX: tìm người nhận bằng username (khoá duy nhất) thay vì name —
+     trước đây dùng displayName để tìm, nếu 2 học viên trong lớp trùng
+     tên hiển thị thì find() có thể trả về NHẦM người. */
+  const peer = (g.peers || []).find(p => p.username === targetUsername);
   if (!peer) {
     showToast("⚠️ Không tìm thấy bạn học này!", "error");
     return;
@@ -4290,42 +4446,69 @@ function giftDecorationToPeer(itemId, itemIndex, targetPeerName) {
 
   /* Rule: Only transfer if recipient does NOT already own this item */
   if (peer.decorations.includes(itemId)) {
-    showToast(`⚠️ Bạn ${targetPeerName} đã sở hữu đạo cụ ${item.icon} ${item.name} rồi! Hãy chọn tặng bạn học khác nhé.`, "warning");
+    showToast(`⚠️ Bạn ${peer.name} đã sở hữu đạo cụ ${item.icon} ${item.name} rồi! Hãy chọn tặng bạn học khác nhé.`, "warning");
     return;
   }
 
-  /* Sender loses item & charm */
-  const removeIdx = g.decorations.indexOf(itemId);
-  if (removeIdx !== -1) {
-    g.decorations.splice(removeIdx, 1);
-  } else if (itemIndex >= 0 && itemIndex < g.decorations.length) {
-    g.decorations.splice(itemIndex, 1);
+  if (!Array.isArray(g.decorations) || !g.decorations.includes(itemId)) {
+    showToast("⚠️ Bạn không còn sở hữu đạo cụ này (có thể đã tặng đi rồi)!", "error");
+    return;
   }
 
-  /* Recipient gains item & charm */
-  peer.decorations.push(itemId);
+  /* FIX QUAN TRỌNG: trước đây hàm này chỉ sửa túi đồ của người NHẬN trên
+     bản sao cục bộ (g.peers) trong máy người TẶNG — không hề ghi lên
+     server thay cho người nhận. Người nhận KHÔNG thực sự có đạo cụ (lần
+     đồng bộ roster kế tiếp sẽ kéo lại đúng dữ liệu cũ từ server, "quà
+     tặng" biến mất), trong khi người tặng đã mất đạo cụ THẬT (vì phần
+     trừ của chính mình vẫn được lưu đúng qua save_progress). Giờ gọi
+     thẳng RPC transfer_decoration để chuyển atomically trên server cho
+     CẢ 2 bên trong 1 giao dịch — giống cách xử lý grant_bamboo/award_badge. */
+  const res = await callServer("transfer_decoration", {
+    senderUsername: state.username,
+    recipientUsername: peer.username,
+    itemId
+  });
+
+  if (!res || !res.ok) {
+    return alert("❌ Tặng đạo cụ thất bại:\n" + describeServerError(res));
+  }
+
+  /* Cập nhật lại cả 2 bên theo đúng dữ liệu server vừa xác nhận, thay vì
+     tự suy đoán trên máy. */
+  if (Array.isArray(res.senderDecorations)) {
+    g.decorations = res.senderDecorations;
+  } else {
+    const removeIdx = g.decorations.indexOf(itemId);
+    if (removeIdx !== -1) g.decorations.splice(removeIdx, 1);
+  }
+  if (Array.isArray(res.recipientDecorations)) {
+    peer.decorations = res.recipientDecorations;
+  } else {
+    peer.decorations.push(itemId);
+  }
   peer.charm = calcPandaCharm(peer.decorations);
 
   /* Sync current student in peers array */
-  if (state.studentName && Array.isArray(g.peers)) {
-    const me = g.peers.find(p => p.name === state.studentName);
+  if (state.username && Array.isArray(g.peers)) {
+    const me = g.peers.find(p => p.username === state.username);
     if (me) {
       me.decorations = g.decorations;
       me.charm = calcPandaCharm(g.decorations);
     }
   }
 
-  addGiftFeedLog(`🎁 ${state.studentName} đã chuyển tặng ${item.icon} ${item.name} cho ${targetPeerName}! (${targetPeerName} nhận +${item.charm} Mị Lực 💖, ${state.studentName} -${item.charm} Mị Lực)`);
+  addGiftFeedLog(`🎁 ${state.studentName} đã chuyển tặng ${item.icon} ${item.name} cho ${peer.name}! (${peer.name} nhận +${item.charm} Mị Lực 💖, ${state.studentName} -${item.charm} Mị Lực)`);
 
   saveState();
   updateGamificationUI();
-  renderGiftModal(targetPeerName);
+  renderGiftModal(peer.username);
   renderShopModal();
   renderGardenDecorations();
   renderLeaderboardContent();
+  refreshServerRoster().then(() => renderGiftModal(peer.username));
   playSound("correct");
 
-  showToast(`🎁 TẶNG QUÀ THÀNH CÔNG!\n- Đạo cụ ${item.icon} ${item.name} đã chuyển sang Vườn của ${targetPeerName} (+${item.charm} Mị Lực 💖).\n- Bạn đã chuyển giao vật phẩm này (-${item.charm} Mị Lực 💖).`, "success");
+  showToast(`🎁 TẶNG QUÀ THÀNH CÔNG!\n- Đạo cụ ${item.icon} ${item.name} đã chuyển sang Vườn của ${peer.name} (+${item.charm} Mị Lực 💖).\n- Bạn đã chuyển giao vật phẩm này (-${item.charm} Mị Lực 💖).`, "success");
 }
 
 function checkResetDailySteals() {
@@ -4363,15 +4546,19 @@ function renderStealModal() {
   list.innerHTML = "";
 
   const peers = (g.peers || []).slice();
-  if (state.studentName) {
-    const me = peers.find(p => p.name === state.studentName);
+  /* FIX: lọc bản thân bằng username (đảm bảo duy nhất) thay vì name
+     (displayName KHÔNG đảm bảo duy nhất trong lớp — 2 học viên có thể
+     trùng tên hiển thị, dùng name để so khớp dễ lẫn nhầm giữa các bạn
+     trùng tên). */
+  if (state.username) {
+    const me = peers.find(p => p.username === state.username);
     if (me) {
       me.bambooPouch = g.bambooPouch;
       me.level = calcLevelDetails(g.totalXp, getTotalCharm(g)).level;
     }
   }
 
-  const targets = peers.filter(p => p.name !== state.studentName);
+  const targets = peers.filter(p => p.username !== state.username);
 
   if (targets.length === 0) {
     list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--ink-soft); font-size:13px;">Chưa có bạn học nào khác trong danh sách cướp.</div>`;
@@ -4389,13 +4576,15 @@ function renderStealModal() {
       <button class="btn btn-bad" style="font-size:12px; padding:6px 12px; background:#E53935; border-color:#B71C1C;">🐾 Cướp Trúc</button>
     `;
 
+    /* FIX: truyền username (khoá duy nhất) thay vì name để xác định đúng
+       đối tượng bị cướp, tránh nhầm giữa các học viên trùng tên. */
     const btn = card.querySelector("button");
-    btn.addEventListener("click", () => stealBambooFromPeer(p.name));
+    btn.addEventListener("click", () => stealBambooFromPeer(p.username));
     list.appendChild(card);
   });
 }
 
-async function stealBambooFromPeer(peerName) {
+async function stealBambooFromPeer(peerUsername) {
   checkResetDailySteals();
   const g = state.gamification;
   const stolenToday = g.dailySteals?.count || 0;
@@ -4405,7 +4594,11 @@ async function stealBambooFromPeer(peerName) {
     return alert("Hôm nay bạn đã cướp đủ giới hạn 5 Cành Trúc rồi! Hãy quay lại vào ngày mai nhé 🐾");
   }
 
-  const peer = (g.peers || []).find(p => p.name === peerName);
+  /* FIX: tìm nạn nhân bằng username (khoá duy nhất) thay vì name — trước
+     đây dùng displayName để tìm, nếu 2 học viên trong lớp trùng tên hiển
+     thị thì find() có thể trả về NHẦM người (luôn lấy người đầu tiên
+     trùng tên trong mảng), khiến cướp nhầm bạn khác với người vừa bấm. */
+  const peer = (g.peers || []).find(p => p.username === peerUsername);
   if (!peer) return alert("Không tìm thấy học viên này!");
 
   if (!peer.username) {
@@ -4435,7 +4628,31 @@ async function stealBambooFromPeer(peerName) {
 
   /* Cập nhật lại bản sao cục bộ theo đúng số dư server vừa xác nhận */
   peer.bambooPouch = (typeof res.bambooPouch === "number") ? res.bambooPouch : Math.max(0, peer.bambooPouch - stolenAmt);
-  g.bambooPouch += stolenAmt;
+
+  /* FIX QUAN TRỌNG #2: trước đây phần Trúc "cướp được" chỉ được cộng vào
+     state cục bộ (g.bambooPouch += stolenAmt) rồi trông chờ saveState() ->
+     pushProgressToServer() (debounce 1.5 GIÂY) đẩy lên server sau. Nếu học
+     viên tắt tab/mất mạng ngay trong 1.5s đó, nạn nhân ĐÃ THẬT SỰ bị trừ
+     Trúc (vì RPC ở trên đã chạy xong và server xác nhận), nhưng người cướp
+     lại không nhận được gì khi mở lại app lần sau — Trúc "bốc hơi" khỏi hệ
+     thống. Giờ ghi nhận phần cộng cho người cướp CŨNG qua RPC grant_bamboo
+     ngay lập tức, đảm bảo chắc chắn giống hệt cách đã xử lý cho nạn nhân ở
+     trên, không còn phụ thuộc vào debounce nữa. */
+  const myReason = `Cướp được của ${peer.name} 🐾`;
+  const myRes = await callServer("grant_bamboo", { username: state.username, amount: stolenAmt, reason: myReason });
+
+  if (myRes && myRes.ok && typeof myRes.bambooPouch === "number") {
+    g.bambooPouch = myRes.bambooPouch;
+  } else {
+    /* Trường hợp hiếm: trừ của nạn nhân đã thành công nhưng cộng cho
+       chính mình lại gặp lỗi mạng ngay lúc đó -> vẫn cập nhật tạm trên
+       máy để không mất Trúc hiển thị trước mắt cho học viên, và
+       saveState() bên dưới sẽ cố đẩy lại qua kênh tiến trình thông
+       thường (save_progress) ở lượt lưu kế tiếp. */
+    g.bambooPouch += stolenAmt;
+    console.warn("Cộng Trúc cho người cướp qua RPC thất bại, dùng phương án dự phòng (state cục bộ + saveState debounce).", myRes);
+  }
+
   g.dailySteals.count += stolenAmt;
 
   const msg = `🐾 Gấu Trúc của ${state.studentName} đã cướp thành công ${stolenAmt} Cành Trúc của ${peer.name}! 🎋`;
@@ -4798,8 +5015,7 @@ function initFlashcardHandlers() {
    ========================================================= */
 const qzTopicSel = document.getElementById("qz-topic");
 const qzArea = document.getElementById("qz-area");
-let qzQueue = [], qzIdx = 0, qzScore = 0;
-let qzIsSplit = false, qzSessionTopic = "all";
+let qzQueue = [], qzIdx = 0, qzScore = 0, qzCorrectCount = 0, qzWrongCount = 0;
 
 let qzUseAll = false;
 
@@ -4868,8 +5084,8 @@ function initQuizHandlers() {
     qzQueue = shuffle(words).slice(0, Math.min(countLimit, words.length));
     qzIdx = 0;
     qzScore = 0;
-    qzSessionTopic = qzTopicSel.value;
-    qzIsSplit = qzQueue.length < words.length;
+    qzCorrectCount = 0;
+    qzWrongCount = 0;
     renderQuizQuestion();
   });
 }
@@ -4907,9 +5123,11 @@ function renderQuizQuestion() {
       if (isCorrect) {
         b.classList.add("correct");
         qzScore++;
+        qzCorrectCount++;
         playSound("correct");
       } else {
         b.classList.add("wrong");
+        qzWrongCount++;
         const correctBtn = Array.from(optWrap.children).find(x => x.textContent === w.meaning);
         if (correctBtn) correctBtn.classList.add("correct");
         playSound("wrong");
@@ -4925,6 +5143,25 @@ function renderQuizQuestion() {
         isCorrect: isCorrect
       });
 
+      /* Kiểm tra ngưỡng % sai (tính từ đầu list) — nếu vượt ngưỡng giáo
+         viên cấu hình, xáo lại toàn bộ list và làm lại từ đầu, giống cơ
+         chế của mục Kiểm Tra Pinyin. */
+      const answeredSoFar = qzCorrectCount + qzWrongCount;
+      const wrongPct = Math.round((qzWrongCount / answeredSoFar) * 100);
+      const restartThreshold = getQuizRestartThreshold(qzTopicSel.value);
+      if (wrongPct > restartThreshold) {
+        setTimeout(() => {
+          showToast(`❌ Sai quá ${restartThreshold}% (đang sai ${wrongPct}%) — list sẽ làm lại từ đầu, cố lên nhé! 🔁`, "warning");
+          qzQueue = shuffle(qzQueue);
+          qzIdx = 0;
+          qzScore = 0;
+          qzCorrectCount = 0;
+          qzWrongCount = 0;
+          renderQuizQuestion();
+        }, 1000);
+        return;
+      }
+
       setTimeout(() => {
         qzIdx++;
         renderQuizQuestion();
@@ -4936,19 +5173,17 @@ function renderQuizQuestion() {
 
 function renderQuizResult() {
   const pct = Math.round((qzScore / qzQueue.length) * 100);
-  const rewardFullCap = qzIsSplit ? getQuizSplitReward(qzSessionTopic) : getQuizListReward(qzSessionTopic);
-  const rewardAmt = computeQuizReward(pct, rewardFullCap);
+  const rewardAmt = computeQuizReward(pct, qzTopicSel.value, qzUseAll);
   if (!state.gamification.counters) state.gamification.counters = {};
   state.gamification.counters.quizCount = (state.gamification.counters.quizCount || 0) + 1;
   if (rewardAmt > 0) {
-    grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Quiz (${pct}%)${qzIsSplit ? " · 🎲 Tách list" : ""}`);
+    grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Quiz (${pct}%)`);
   } else {
     saveState();
   }
 
-  const modeNote = qzIsSplit ? " (Tách list)" : "";
   const rewardLine = rewardAmt > 0
-    ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🐼${modeNote} (+${rewardAmt} Trúc 🎋)`
+    ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🐼 (+${rewardAmt} Trúc 🎋)`
     : `Bạn đạt ${pct}% câu trả lời đúng. Cố gắng thêm để đạt mức tối thiểu và nhận Trúc nhé 🐼 (+0 Trúc)`;
 
   qzArea.innerHTML = `
@@ -4978,7 +5213,6 @@ function renderQuizResult() {
 const pyTopicSel = document.getElementById("py-topic");
 const pyArea = document.getElementById("py-area");
 let pyQueue = [], pyIdx = 0, pyCorrectCount = 0, pyWrongCount = 0, pyUseAll = false;
-let pyIsSplit = false, pySessionTopic = "all";
 
 function updatePyCountHint() {
   const countInp = document.getElementById("py-count-input");
@@ -5035,8 +5269,6 @@ function initPinyinTestHandlers() {
     pyIdx = 0;
     pyCorrectCount = 0;
     pyWrongCount = 0;
-    pySessionTopic = pyTopicSel.value;
-    pyIsSplit = pyQueue.length < words.length;
     renderPinyinTestQuestion();
   });
 }
@@ -5126,19 +5358,17 @@ function renderPinyinTestQuestion() {
 function renderPinyinTestResult() {
   const total = pyQueue.length;
   const pct = total ? Math.round((pyCorrectCount / total) * 100) : 0;
-  const rewardFullCap = pyIsSplit ? getPySplitReward(pySessionTopic) : getPyListReward(pySessionTopic);
-  const rewardAmt = computePinyinTestReward(pct, rewardFullCap);
+  const rewardAmt = computePinyinTestReward(pct, pyTopicSel.value, pyUseAll);
   if (!state.gamification.counters) state.gamification.counters = {};
   state.gamification.counters.pinyinTestCount = (state.gamification.counters.pinyinTestCount || 0) + 1;
   if (rewardAmt > 0) {
-    grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Pinyin (${pct}%)${pyIsSplit ? " · 🎲 Tách list" : ""}`);
+    grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Pinyin (${pct}%)`);
   } else {
     saveState();
   }
 
-  const modeNote = pyIsSplit ? " (Tách list)" : "";
   const rewardLine = rewardAmt > 0
-    ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🀄${modeNote} (+${rewardAmt} Trúc 🎋)`
+    ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🀄 (+${rewardAmt} Trúc 🎋)`
     : `Bạn đạt ${pct}% câu trả lời đúng. Cố gắng thêm để đạt mức tối thiểu và nhận Trúc nhé 🀄 (+0 Trúc)`;
 
   pyArea.innerHTML = `
@@ -5409,12 +5639,41 @@ const wcTopicSel = document.getElementById("wc-topic");
 const wcArea = document.getElementById("wc-area");
 let wcWords = [];
 
+/* Cập nhật gợi ý (tối thiểu) và giá trị của ô nhập "Số từ ngẫu nhiên" dựa
+   trên list/chủ đề đang chọn + số từ tối thiểu giáo viên đã cấu hình riêng
+   cho list đó (hoặc mức mặc định chung) — cùng cơ chế với updatePyCountHint(). */
+function updateWcCountHint() {
+  const countInp = document.getElementById("wc-count");
+  const hint = document.getElementById("wc-count-hint");
+  if (!countInp || !wcTopicSel) return;
+  const words = allWords().filter(w => wcTopicSel.value === "all" || w.topic === wcTopicSel.value);
+  const total = words.length;
+  const minCount = Math.min(getWcMinCount(wcTopicSel.value), Math.max(total, 1));
+  countInp.min = minCount;
+  countInp.max = total || 10;
+  if (!countInp.value || parseInt(countInp.value, 10) < minCount) countInp.value = minCount;
+  if (total && parseInt(countInp.value, 10) > total) countInp.value = total;
+  if (hint) hint.textContent = total ? `(tối thiểu ${minCount} từ)` : "";
+}
+
 function initWordChallengeHandlers() {
+  if (wcTopicSel) {
+    wcTopicSel.addEventListener("change", updateWcCountHint);
+  }
+  fillTopicSelect(wcTopicSel);
+  updateWcCountHint();
   document.getElementById("wc-roll-btn")?.addEventListener("click", () => {
     fillTopicSelect(wcTopicSel);
+    updateWcCountHint();
     const words = allWords().filter(w => wcTopicSel.value === "all" || w.topic === wcTopicSel.value);
     let count = parseInt(document.getElementById("wc-count").value) || 3;
     if (words.length === 0) return alert("List này chưa có từ vựng!");
+
+    const minCount = getWcMinCount(wcTopicSel.value);
+    if (count < minCount) {
+      alert(`List này yêu cầu chọn tối thiểu ${minCount} từ ngẫu nhiên! Vui lòng chọn số từ lớn hơn hoặc bằng ${minCount}.`);
+      return;
+    }
 
     wcWords = shuffle(words).slice(0, Math.min(count, words.length));
     renderWcArea();
@@ -5423,10 +5682,11 @@ function initWordChallengeHandlers() {
 
 function renderWcArea() {
   const chips = wcWords.map(w => `
-    <div class="wc-chip">
+    <div class="wc-chip" data-hanzi="${escapeHtml(w.hanzi)}">
       <div class="hanzi">${w.hanzi}</div>
       <div class="pinyin">${w.pinyin}</div>
       <div class="meaning">${w.meaning}</div>
+      <div class="wc-chip-status" style="font-size:11px; font-weight:700; margin-top:4px;">⬜ Chưa dùng</div>
     </div>
   `).join("");
 
@@ -5435,15 +5695,49 @@ function renderWcArea() {
     <div style="background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px;">
       <p style="margin:0 0 10px; font-weight:700; color:var(--seal-dark);">📝 Viết đoạn văn có sử dụng đầy đủ ${wcWords.length} từ ở trên:</p>
       <textarea id="wc-textarea" style="width:100%; height:110px;" placeholder="Viết câu của bạn tại đây..."></textarea>
+      <p id="wc-progress-hint" style="font-size:12px; font-weight:700; color:var(--ink-soft); margin:8px 0 0;">Đã dùng 0/${wcWords.length} từ — hãy dùng đủ tất cả từ để nộp bài được.</p>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
         <button class="btn btn-outline" id="wc-reroll-btn">🎲 Đổi từ khác</button>
-        <button class="btn btn-ok" id="wc-submit-btn">Nộp bài đặt câu 🚀 (+Trúc)</button>
+        <button class="btn btn-ok" id="wc-submit-btn" disabled>Nộp bài đặt câu 🚀 (+Trúc)</button>
       </div>
     </div>
   `;
 
+  /* Kiểm tra realtime: câu trả lời phải chứa ĐỦ tất cả các từ đã chọn ngẫu
+     nhiên (so khớp Hán tự) thì nút Nộp bài mới được bật lên — mỗi từ dùng
+     rồi sẽ đổi trạng thái ✅ trong chip tương ứng. */
+  const wcTextareaEl = document.getElementById("wc-textarea");
+  const wcSubmitBtnEl = document.getElementById("wc-submit-btn");
+  const wcProgressHintEl = document.getElementById("wc-progress-hint");
+  function checkWcWordsUsed() {
+    const text = wcTextareaEl.value || "";
+    let usedCount = 0;
+    wcArea.querySelectorAll(".wc-chip").forEach(chip => {
+      const hanzi = chip.dataset.hanzi;
+      const used = hanzi && text.includes(hanzi);
+      if (used) usedCount++;
+      chip.classList.toggle("wc-chip-used", !!used);
+      const statusEl = chip.querySelector(".wc-chip-status");
+      if (statusEl) statusEl.textContent = used ? "✅ Đã dùng" : "⬜ Chưa dùng";
+    });
+    const allUsed = usedCount === wcWords.length;
+    if (wcSubmitBtnEl) wcSubmitBtnEl.disabled = !allUsed;
+    if (wcProgressHintEl) {
+      wcProgressHintEl.textContent = allUsed
+        ? `Đã dùng đủ ${usedCount}/${wcWords.length} từ — có thể nộp bài! 🎉`
+        : `Đã dùng ${usedCount}/${wcWords.length} từ — hãy dùng đủ tất cả từ để nộp bài được.`;
+    }
+    return allUsed;
+  }
+  wcTextareaEl?.addEventListener("input", checkWcWordsUsed);
+  checkWcWordsUsed();
+
   document.getElementById("wc-reroll-btn")?.addEventListener("click", () => document.getElementById("wc-roll-btn")?.click());
   document.getElementById("wc-submit-btn")?.addEventListener("click", () => {
+    if (!checkWcWordsUsed()) {
+      alert("Câu/đoạn văn của bạn chưa dùng đủ tất cả các từ được chọn ngẫu nhiên! Vui lòng bổ sung đủ từ rồi mới nộp bài.");
+      return;
+    }
     const text = document.getElementById("wc-textarea").value.trim();
     if (!text) return alert("Vui lòng viết đoạn văn trước khi nộp bài!");
 
@@ -5482,6 +5776,16 @@ function renderWcArea() {
    màn hình danh sách chọn Bài Tập). Đây là state tạm trong phiên
    làm việc, không cần lưu lại. */
 let grammarActiveSectionId = null;
+
+/* Trúc thưởng khi nộp Bài Tập Ngữ Pháp (lần đầu): ưu tiên số giáo viên đã
+   tùy chỉnh riêng cho TỪNG Bài Tập (sec.reward, kể cả 0 — dùng khi giáo viên
+   nhận thấy Bài Tập đó học sinh đã ôn kỹ / dễ bị làm lại để spam Trúc), nếu
+   Bài Tập chưa được tùy chỉnh riêng thì dùng mức mặc định chung (Thưởng Ngữ
+   Pháp trong Reward Matrix). */
+function getGrammarReward(sec) {
+  if (sec && typeof sec.reward === "number" && sec.reward >= 0) return sec.reward;
+  return state.gamification?.rewardMatrix?.grammar || 20;
+}
 
 function escapeHtml(str) {
   return String(str || "").replace(/[&<>"']/g, (c) => ({
@@ -5529,7 +5833,7 @@ function renderGrammarSectionList(area, sections, cData) {
         <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0 0 4px;">${sIdx + 1}. ${escapeHtml(sec.title)}</h3>
         <p style="color:var(--ink-soft); font-size:13px; margin:0 0 6px; font-weight:600;">${escapeHtml(sec.instruction || '')}</p>
         <div style="font-size:12px; color:var(--ink-soft);">
-          📌 ${(sec.items || []).length} điểm ngữ pháp ·
+          📌 ${(sec.items || []).length} điểm ngữ pháp · 🎋 +${getGrammarReward(sec)} Trúc ·
           ${mySub
             ? `<span style="color:var(--jade-dark); font-weight:800;">✅ Đã nộp lúc ${mySub.submittedAt}</span>`
             : `<span style="color:#B45309; font-weight:800;">⏳ Chưa làm</span>`}
@@ -5566,7 +5870,8 @@ function renderGrammarSectionDetail(area, sections, cData) {
   card.style.cssText = "background:var(--card-bg); border:3px solid var(--paper-darker); border-radius:22px; padding:20px;";
   card.innerHTML = `
     <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0 0 4px;">${escapeHtml(sec.title)}</h3>
-    <p style="color:var(--ink-soft); font-size:13px; margin:0 0 14px; font-weight:600;">${escapeHtml(sec.instruction || '')}</p>
+    <p style="color:var(--ink-soft); font-size:13px; margin:0 0 6px; font-weight:600;">${escapeHtml(sec.instruction || '')}</p>
+    <p style="color:var(--jade-dark); font-size:12px; margin:0 0 14px; font-weight:800;">🎋 Nộp lần đầu nhận +${getGrammarReward(sec)} Trúc</p>
     ${mySub ? `<div style="font-size:12px; color:var(--jade-dark); font-weight:800; background:rgba(0,0,0,0.03); border-radius:10px; padding:8px 12px; margin-bottom:10px;">✅ Bạn đã nộp Bài Tập này lúc ${mySub.submittedAt}. Sửa câu trả lời rồi nộp lại nếu muốn cập nhật (không cộng thêm Trúc cho lần nộp lại).</div>` : ''}
     <div class="sec-items"></div>
   `;
@@ -5613,7 +5918,7 @@ function initGrammarHandlers() {
 
     const existing = cData.grammarSubmissions.find(s => s.studentName === state.studentName && s.sectionId === sec.id);
     const isFirstSubmit = !existing;
-    const rewardAmt = state.gamification?.rewardMatrix?.grammar || 20;
+    const rewardAmt = getGrammarReward(sec);
 
     if (existing) {
       existing.answers = answers;
@@ -6378,6 +6683,13 @@ function activateView(viewName) {
   const target = document.getElementById("view-" + viewName);
   if (target) target.classList.add("active");
   refreshActiveViewData();
+
+  /* Nếu có bản cập nhật đang bị hoãn (do trước đó học viên đang làm bài)
+     và giờ họ vừa chuyển sang màn hình không còn là khu vực làm bài ->
+     áp dụng ngay, không cần đợi tới lượt kiểm tra định kỳ kế tiếp. */
+  if (_pendingReloadHash && typeof isInExamLikeView_ === "function" && !isInExamLikeView_()) {
+    applyPendingReload_();
+  }
 }
 
 /* Mưa hiệu ứng ăn mừng (emoji rơi khắp màn hình) khi Bảng Xếp Hạng vừa hiện ra */
@@ -6570,7 +6882,7 @@ function renderLeaderboardContent() {
                 <div style="font-weight:800; color:var(--seal-dark); font-size:15px;">${p.totalXp} XP</div>
                 <div style="font-size:12px; color:var(--jade-dark); font-weight:700;">🎋 ${p.bambooPouch} Trúc</div>
               </div>
-              ${!isMe ? `<button class="btn btn-bad lb-steal-btn" data-peer="${p.name}" style="font-size:11px; padding:6px 10px; background:#E53935; border-color:#B71C1C;">🐾 Cướp Trúc</button>` : ''}
+              ${!isMe ? `<button class="btn btn-bad lb-steal-btn" data-peer-username="${p.username}" style="font-size:11px; padding:6px 10px; background:#E53935; border-color:#B71C1C;">🐾 Cướp Trúc</button>` : ''}
             </div>
           </div>
         </div>
@@ -6579,8 +6891,10 @@ function renderLeaderboardContent() {
     html += `</div>`;
     area.innerHTML = html;
 
+    /* FIX: dùng username (khoá duy nhất) thay vì name để xác định đúng
+       đối tượng bị cướp, tránh nhầm giữa các học viên trùng tên. */
     area.querySelectorAll(".lb-steal-btn").forEach(btn => {
-      btn.addEventListener("click", () => stealBambooFromPeer(btn.dataset.peer));
+      btn.addEventListener("click", () => stealBambooFromPeer(btn.dataset.peerUsername));
     });
   } else if (mode === "charm") {
     const peers = (state.gamification?.peers || []).slice();
@@ -6648,7 +6962,7 @@ function renderLeaderboardContent() {
                 <div style="font-weight:900; color:#E91E63; font-size:16px;">💖 ${p.charm || 0} Mị Lực</div>
                 <div style="font-size:11px; color:var(--ink-soft);">${decos.length} Đạo cụ trang trí</div>
               </div>
-              ${!isMe ? `<button class="btn btn-ok lb-gift-btn" data-peer="${p.name}" style="font-size:11px; padding:6px 12px;">🎁 Tặng Đạo Cụ</button>` : ''}
+              ${!isMe ? `<button class="btn btn-ok lb-gift-btn" data-peer-username="${p.username}" style="font-size:11px; padding:6px 12px;">🎁 Tặng Đạo Cụ</button>` : ''}
             </div>
           </div>
         </div>
@@ -6658,8 +6972,10 @@ function renderLeaderboardContent() {
     html += `</div>`;
     area.innerHTML = html;
 
+    /* FIX: dùng username (khoá duy nhất) thay vì name để mở đúng modal
+       tặng cho đúng người, tránh nhầm giữa các học viên trùng tên. */
     area.querySelectorAll(".lb-gift-btn").forEach(btn => {
-      btn.addEventListener("click", () => openGiftModal(btn.dataset.peer));
+      btn.addEventListener("click", () => openGiftModal(btn.dataset.peerUsername));
     });
   }
 }
@@ -6892,6 +7208,15 @@ function initTeacherCMSHandlers() {
     if (cData.timedListRewards) delete cData.timedListRewards[topic];
     if (cData.timedMinSplitCounts) delete cData.timedMinSplitCounts[topic];
     if (cData.timedSplitRewards) delete cData.timedSplitRewards[topic];
+    if (cData.qzFullRewards) delete cData.qzFullRewards[topic];
+    if (cData.qzSplitRewards) delete cData.qzSplitRewards[topic];
+    if (cData.qzMinCounts) delete cData.qzMinCounts[topic];
+    if (cData.qzThresholds) delete cData.qzThresholds[topic];
+    if (cData.pyFullRewards) delete cData.pyFullRewards[topic];
+    if (cData.pySplitRewards) delete cData.pySplitRewards[topic];
+    if (cData.pyMinCounts) delete cData.pyMinCounts[topic];
+    if (cData.pyThresholds) delete cData.pyThresholds[topic];
+    if (cData.pyRestartThresholds) delete cData.pyRestartThresholds[topic];
     const timedBestKey = `${state.currentClassName}_${topic}`;
     if (state.timedBest) delete state.timedBest[timedBestKey];
     if (state.timedSubmissions && state.timedSubmissions[state.currentClassName]) {
@@ -6947,12 +7272,54 @@ function initTeacherCMSHandlers() {
     alert(`Đã lưu thời gian thử thách: ${sec}s!`);
   });
 
-  /* Số từ tối thiểu khi tách list */
-  document.getElementById("tl-save-min-split-btn")?.addEventListener("click", () => {
-    const val = parseInt(document.getElementById("tl-min-split-count").value, 10) || 20;
-    state.timedMinSplitCount = Math.max(1, val);
+  /* Lưu Tất Cả Mức Mặc Định Chung (gộp các mục: Số từ tối thiểu tách list,
+     Số câu tối thiểu + Ngưỡng % nhận Trúc + Ngưỡng % sai chạy lại Kiểm Tra,
+     Số câu tối thiểu + Ngưỡng % nhận Trúc + Ngưỡng % sai chạy lại Kiểm Tra
+     Pinyin) — trước đây mỗi mục có nút Lưu riêng, giờ 1 nút áp dụng hết rồi
+     render lại bảng thiết lập theo bài để cập nhật placeholder. */
+  document.getElementById("tl-save-all-defaults-btn")?.addEventListener("click", () => {
+    const minSplitVal = parseInt(document.getElementById("tl-min-split-count").value, 10) || 20;
+    const qzMinVal = parseInt(document.getElementById("tl-qz-min-count").value, 10) || 5;
+    const qzPctRaw = parseInt(document.getElementById("tl-qz-threshold-pct").value, 10);
+    const qzRestartPctRaw = parseInt(document.getElementById("tl-qz-restart-pct").value, 10);
+    const pyMinVal = parseInt(document.getElementById("tl-py-min-count").value, 10) || 5;
+    const pyThresholdPctRaw = parseInt(document.getElementById("tl-py-threshold-pct").value, 10);
+    const pyPctRaw = parseInt(document.getElementById("tl-py-restart-pct").value, 10);
+    const wcMinVal = parseInt(document.getElementById("tl-wc-min-count").value, 10) || 3;
+    state.timedMinSplitCount = Math.max(1, minSplitVal);
+    state.qzMinCount = Math.max(1, qzMinVal);
+    state.qzRestartThreshold = (!isNaN(qzRestartPctRaw) && qzRestartPctRaw >= 0 && qzRestartPctRaw <= 100) ? qzRestartPctRaw : 50;
+    state.pyMinCount = Math.max(1, pyMinVal);
+    state.pyRestartThreshold = (!isNaN(pyPctRaw) && pyPctRaw >= 0 && pyPctRaw <= 100) ? pyPctRaw : 50;
+    state.wcMinCount = Math.max(1, wcMinVal);
+    if (!state.gamification.quizRewardTiers || typeof state.gamification.quizRewardTiers !== "object") state.gamification.quizRewardTiers = { passThreshold: 50 };
+    state.gamification.quizRewardTiers.passThreshold = (!isNaN(qzPctRaw) && qzPctRaw >= 0 && qzPctRaw <= 100) ? qzPctRaw : 50;
+    if (!state.gamification.pinyinRewardTiers || typeof state.gamification.pinyinRewardTiers !== "object") state.gamification.pinyinRewardTiers = { passThreshold: 50 };
+    state.gamification.pinyinRewardTiers.passThreshold = (!isNaN(pyThresholdPctRaw) && pyThresholdPctRaw >= 0 && pyThresholdPctRaw <= 100) ? pyThresholdPctRaw : 50;
     saveState();
-    alert(`Đã lưu số từ tối thiểu mặc định khi tách list: ${state.timedMinSplitCount} từ!`);
+    alert(`Đã lưu Mức Mặc Định Chung: ${state.timedMinSplitCount} từ tối thiểu tách list · ${state.qzMinCount} câu tối thiểu Kiểm Tra (nhận Trúc từ ${state.gamification.quizRewardTiers.passThreshold}%, chạy lại khi sai ${state.qzRestartThreshold}%) · ${state.pyMinCount} câu tối thiểu Pinyin (nhận Trúc từ ${state.gamification.pinyinRewardTiers.passThreshold}%, chạy lại khi sai ${state.pyRestartThreshold}%) · ${state.wcMinCount} từ tối thiểu ngẫu nhiên Đặt Câu!`);
+    renderUnifiedListRows();
+  });
+
+  /* Tổng Hợp BXH Nhanh (Top 3 dẫn đầu + Cảnh báo Top 3 thấp nhất) */
+  document.getElementById("cms-gen-lb-summary-btn")?.addEventListener("click", () => {
+    generateLeaderboardSummary();
+  });
+  document.getElementById("cms-copy-lb-summary-btn")?.addEventListener("click", () => {
+    const txt = document.getElementById("cms-lb-summary-text");
+    if (!txt || !txt.value) return;
+    const done = () => alert("Đã copy bản tổng hợp BXH vào bộ nhớ tạm! Mở Zalo và dán (paste) vào nhóm lớp nhé 🐼");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt.value).then(done).catch(() => {
+        txt.select();
+        document.execCommand("copy");
+        done();
+      });
+    } else {
+      txt.select();
+      document.execCommand("copy");
+      done();
+    }
   });
 
   /* Announcement CMS */
@@ -6968,6 +7335,8 @@ function initTeacherCMSHandlers() {
   /* Reward Matrix CMS */
   document.getElementById("cms-save-reward-btn")?.addEventListener("click", () => {
     const rm = state.gamification.rewardMatrix;
+    rm.quiz = parseInt(document.getElementById("rm-quiz").value) || 10;
+    rm.pinyin = parseInt(document.getElementById("rm-pinyin").value) || 10;
     rm.timed = parseInt(document.getElementById("rm-timed").value) || 10;
     rm.dictation = parseInt(document.getElementById("rm-dictation").value) || 15;
     rm.sentence = parseInt(document.getElementById("rm-sentence").value) || 15;
@@ -6975,54 +7344,6 @@ function initTeacherCMSHandlers() {
     rm.streak = parseInt(document.getElementById("rm-streak").value) || 30;
     saveState();
     alert("Lưu Tỷ lệ Thưởng Trúc thành công!");
-  });
-
-  /* Quiz Reward Tiers CMS (Trúc theo % đúng ở mục Kiểm Tra) */
-  document.getElementById("cms-save-qz-tiers-btn")?.addEventListener("click", () => {
-    const threshold = Math.max(0, Math.min(100, parseInt(document.getElementById("rm-qz-threshold-pct").value, 10)));
-    const thresholdReward = Math.max(0, parseInt(document.getElementById("rm-qz-threshold-reward").value, 10) || 0);
-    const fullReward = Math.max(0, parseInt(document.getElementById("rm-qz-full-reward").value, 10) || 0);
-    if (isNaN(threshold)) return alert("Vui lòng nhập ngưỡng % hợp lệ (0-100)!");
-    state.gamification.quizRewardTiers = {
-      passThreshold: threshold,
-      rewardAtThreshold: thresholdReward,
-      rewardFull: fullReward
-    };
-    saveState();
-    alert("Lưu Cấu Hình Trúc Theo % Đúng thành công!");
-  });
-
-  /* Pinyin Test Reward Tiers CMS (Trúc theo % đúng ở mục Kiểm Tra Pinyin) */
-  document.getElementById("cms-save-py-tiers-btn")?.addEventListener("click", () => {
-    const threshold = Math.max(0, Math.min(100, parseInt(document.getElementById("rm-py-threshold-pct").value, 10)));
-    const thresholdReward = Math.max(0, parseInt(document.getElementById("rm-py-threshold-reward").value, 10) || 0);
-    const fullReward = Math.max(0, parseInt(document.getElementById("rm-py-full-reward").value, 10) || 0);
-    if (isNaN(threshold)) return alert("Vui lòng nhập ngưỡng % hợp lệ (0-100)!");
-    state.gamification.pinyinRewardTiers = {
-      passThreshold: threshold,
-      rewardAtThreshold: thresholdReward,
-      rewardFull: fullReward
-    };
-    saveState();
-    alert("Lưu Cấu Hình Trúc Theo % Đúng (Kiểm Tra Pinyin) thành công!");
-  });
-
-  /* Số câu tối thiểu mặc định mục Kiểm Tra */
-  document.getElementById("tl-save-qz-min-btn")?.addEventListener("click", () => {
-    const val = parseInt(document.getElementById("tl-qz-min-count").value, 10) || 5;
-    state.qzMinCount = Math.max(1, val);
-    saveState();
-    alert(`Đã lưu số câu tối thiểu mặc định mục Kiểm Tra: ${state.qzMinCount} câu!`);
-  });
-
-  /* Số câu tối thiểu & Ngưỡng % sai chạy lại — mặc định mục Kiểm Tra Pinyin */
-  document.getElementById("tl-save-py-min-btn")?.addEventListener("click", () => {
-    const minVal = parseInt(document.getElementById("tl-py-min-count").value, 10) || 5;
-    const pctVal = parseInt(document.getElementById("tl-py-restart-pct").value, 10);
-    state.pyMinCount = Math.max(1, minVal);
-    state.pyRestartThreshold = (!isNaN(pctVal) && pctVal >= 0 && pctVal <= 100) ? pctVal : 50;
-    saveState();
-    alert(`Đã lưu mặc định mục Kiểm Tra Pinyin: tối thiểu ${state.pyMinCount} câu, ngưỡng chạy lại ${state.pyRestartThreshold}% sai!`);
   });
 
   /* Grant / Deduct Bamboo — FIX: trước đây luôn cộng/trừ vào tài khoản
@@ -7037,6 +7358,11 @@ function initTeacherCMSHandlers() {
     const reason = document.getElementById("cms-grant-reason").value.trim();
     if (!username) return alert("Chưa có học viên nào trong danh sách để chọn!");
     if (!reason) return alert("Vui lòng nhập lý do cộng/trừ Trúc!");
+    /* FIX: trước đây nếu để trống hoặc gõ 0 vào ô Số Trúc, parseInt(...) || 0
+       vẫn ra 0 và hệ thống báo "thành công" + đăng cả dòng "được cộng 0
+       Cành Trúc" lên Bảng Tin — không sai dữ liệu nhưng gây log rác/khó
+       hiểu cho học viên. Chặn amount = 0 ngay từ đầu. */
+    if (amount === 0) return alert("Vui lòng nhập số Trúc khác 0 (số dương để cộng, số âm để trừ)!");
 
     const btn = e.currentTarget;
     const originalLabel = btn.textContent;
@@ -7287,262 +7613,255 @@ function updateDeleteTopicInfo() {
   info.textContent = `List này hiện có ${wCount} từ vựng.`;
 }
 
-function renderTimedRewardsManager() {
-  const wrap = document.getElementById("tl-timed-rewards-list");
+/* ==========================================================
+   BẢNG THIẾT LẬP TRÚC & CẤU HÌNH THEO TỪNG BÀI — GỘP CHUNG
+   ==========================================================
+   Trước đây có 3 hàm riêng (renderTimedRewardsManager,
+   renderQuizMinManager, renderPinyinTestManager) — mỗi hàm tự lặp lại
+   toàn bộ danh sách list/chủ đề và có nút Lưu riêng, khiến Thầy/Cô phải
+   kéo qua 3 khu vực khác nhau chỉ để cấu hình xong 1 bài. Giờ gộp lại
+   thành 1 bảng duy nhất: mỗi bài = 1 dòng, đủ cả 3 nhóm thiết lập
+   (Thử Thách Thời Gian / Kiểm Tra / Kiểm Tra Pinyin), 1 nút Lưu áp dụng
+   hết, có ô tìm kiếm để lọc nhanh khi lớp có nhiều list, và có nhãn
+   "Đã tùy chỉnh" + nút "Đặt lại mặc định" để Thầy/Cô nắm nhanh bài nào
+   đang dùng cấu hình riêng. */
+function renderUnifiedListSettingsManager() {
+  const searchInput = document.getElementById("tl-unified-search");
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = "1";
+    searchInput.addEventListener("input", renderUnifiedListRows);
+  }
+  renderUnifiedListRows();
+}
+
+function renderUnifiedListRows() {
+  const wrap = document.getElementById("tl-unified-list");
+  const countEl = document.getElementById("tl-unified-count");
   if (!wrap) return;
   const cData = getCurrentClassData();
   if (!cData.timedListRewards || typeof cData.timedListRewards !== "object") cData.timedListRewards = {};
   if (!cData.timedMinSplitCounts || typeof cData.timedMinSplitCounts !== "object") cData.timedMinSplitCounts = {};
   if (!cData.timedSplitRewards || typeof cData.timedSplitRewards !== "object") cData.timedSplitRewards = {};
-  const topics = topicList();
-  const defaultMinSplit = getTimedMinSplitCount();
-  const defaultReward = state.gamification?.rewardMatrix?.timed || 10;
+  if (!cData.qzMinCounts || typeof cData.qzMinCounts !== "object") cData.qzMinCounts = {};
+  if (!cData.qzFullRewards || typeof cData.qzFullRewards !== "object") cData.qzFullRewards = {};
+  if (!cData.qzSplitRewards || typeof cData.qzSplitRewards !== "object") cData.qzSplitRewards = {};
+  if (!cData.qzThresholds || typeof cData.qzThresholds !== "object") cData.qzThresholds = {};
+  if (!cData.qzRestartThresholds || typeof cData.qzRestartThresholds !== "object") cData.qzRestartThresholds = {};
+  if (!cData.pyMinCounts || typeof cData.pyMinCounts !== "object") cData.pyMinCounts = {};
+  if (!cData.pyFullRewards || typeof cData.pyFullRewards !== "object") cData.pyFullRewards = {};
+  if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
+  if (!cData.pyThresholds || typeof cData.pyThresholds !== "object") cData.pyThresholds = {};
+  if (!cData.pyRestartThresholds || typeof cData.pyRestartThresholds !== "object") cData.pyRestartThresholds = {};
+  if (!cData.wcMinCounts || typeof cData.wcMinCounts !== "object") cData.wcMinCounts = {};
 
-  if (topics.length === 0) {
+  const allTopics = topicList();
+  const searchInput = document.getElementById("tl-unified-search");
+  const q = (searchInput?.value || "").trim().toLowerCase();
+  const topics = q ? allTopics.filter(t => t.toLowerCase().includes(q)) : allTopics;
+
+  if (countEl) {
+    countEl.textContent = allTopics.length ? `Hiển thị ${topics.length}/${allTopics.length} bài` : "";
+  }
+
+  if (allTopics.length === 0) {
     wrap.innerHTML = '<div class="empty-note">Lớp này chưa có list / chủ đề từ vựng nào.</div>';
     return;
   }
+  if (topics.length === 0) {
+    wrap.innerHTML = '<div class="empty-note">Không tìm thấy bài nào khớp với từ khóa tìm kiếm.</div>';
+    return;
+  }
+
+  const defaultMinSplit = getTimedMinSplitCount();
+  const defaultReward = state.gamification?.rewardMatrix?.timed || 10;
+  const defaultQzMin = getQuizMinCount();
+  const defaultQzFullReward = state.gamification?.rewardMatrix?.quiz || 10;
+  const defaultQzThresholdPct = getQuizPassThreshold();
+  const defaultQzPct = getQuizRestartThreshold();
+  const defaultPyMin = getPyMinCount();
+  const defaultPyFullReward = state.gamification?.rewardMatrix?.pinyin || 10;
+  const defaultPyThresholdPct = getPinyinPassThreshold();
+  const defaultPyPct = getPyRestartThreshold();
+  const defaultWcMin = getWcMinCount();
 
   wrap.innerHTML = "";
   topics.forEach(t => {
     const wCount = allWords().filter(w => w.topic === t).length;
     const minSplitForTopic = getTimedMinSplitCount(t);
     const defaultSplitRewardForTopic = getTimedSplitReward(t);
-    const currentReward = (typeof cData.timedListRewards[t] === "number" && cData.timedListRewards[t] > 0)
-      ? cData.timedListRewards[t] : "";
-    const currentMinSplit = (typeof cData.timedMinSplitCounts[t] === "number" && cData.timedMinSplitCounts[t] > 0)
-      ? cData.timedMinSplitCounts[t] : "";
-    const currentSplitReward = (typeof cData.timedSplitRewards[t] === "number" && cData.timedSplitRewards[t] > 0)
-      ? cData.timedSplitRewards[t] : "";
+    const defaultQzSplitRewardForTopic = getQuizSplitReward(t);
+    const defaultPySplitRewardForTopic = getPinyinSplitReward(t);
+
+    const currentMinSplit = (typeof cData.timedMinSplitCounts[t] === "number" && cData.timedMinSplitCounts[t] > 0) ? cData.timedMinSplitCounts[t] : "";
+    const currentReward = (typeof cData.timedListRewards[t] === "number" && cData.timedListRewards[t] >= 0) ? cData.timedListRewards[t] : "";
+    const currentSplitReward = (typeof cData.timedSplitRewards[t] === "number" && cData.timedSplitRewards[t] >= 0) ? cData.timedSplitRewards[t] : "";
+    const currentQzMin = (typeof cData.qzMinCounts[t] === "number" && cData.qzMinCounts[t] > 0) ? cData.qzMinCounts[t] : "";
+    const currentQzFullReward = (typeof cData.qzFullRewards[t] === "number" && cData.qzFullRewards[t] >= 0) ? cData.qzFullRewards[t] : "";
+    const currentQzSplitReward = (typeof cData.qzSplitRewards[t] === "number" && cData.qzSplitRewards[t] >= 0) ? cData.qzSplitRewards[t] : "";
+    const currentQzThresholdPct = (typeof cData.qzThresholds[t] === "number" && cData.qzThresholds[t] >= 0) ? cData.qzThresholds[t] : "";
+    const currentQzPct = (typeof cData.qzRestartThresholds[t] === "number" && cData.qzRestartThresholds[t] >= 0) ? cData.qzRestartThresholds[t] : "";
+    const currentPyMin = (typeof cData.pyMinCounts[t] === "number" && cData.pyMinCounts[t] > 0) ? cData.pyMinCounts[t] : "";
+    const currentPyFullReward = (typeof cData.pyFullRewards[t] === "number" && cData.pyFullRewards[t] >= 0) ? cData.pyFullRewards[t] : "";
+    const currentPySplitReward = (typeof cData.pySplitRewards[t] === "number" && cData.pySplitRewards[t] >= 0) ? cData.pySplitRewards[t] : "";
+    const currentPyThresholdPct = (typeof cData.pyThresholds[t] === "number" && cData.pyThresholds[t] >= 0) ? cData.pyThresholds[t] : "";
+    const currentPyPct = (typeof cData.pyRestartThresholds[t] === "number" && cData.pyRestartThresholds[t] >= 0) ? cData.pyRestartThresholds[t] : "";
+    const currentWcMin = (typeof cData.wcMinCounts[t] === "number" && cData.wcMinCounts[t] > 0) ? cData.wcMinCounts[t] : "";
+
+    const isCustomized = [
+      currentMinSplit, currentReward, currentSplitReward,
+      currentQzMin, currentQzFullReward, currentQzSplitReward, currentQzThresholdPct, currentQzPct,
+      currentPyMin, currentPyFullReward, currentPySplitReward, currentPyThresholdPct, currentPyPct,
+      currentWcMin
+    ].some(v => v !== "");
+
     const row = document.createElement("div");
-    row.style.cssText = "display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--paper); padding:10px 14px; border-radius:14px; border:2px solid var(--paper-darker);";
+    row.className = "tl-unified-row" + (isCustomized ? " is-customized" : "");
+    row.dataset.topic = t;
     row.innerHTML = `
-      <div style="flex:1; min-width:140px;">
-        <strong style="font-size:13px;">${t}</strong>
-        <div style="font-size:11px; color:var(--ink-soft);">${wCount} từ ${wCount > minSplitForTopic ? "· có thể tách list" : "· chưa đủ để tách list"}</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <div>
+          <strong style="font-size:14px;">${t}</strong>
+          <span style="font-size:11px; color:var(--ink-soft); margin-left:6px;">${wCount} từ${wCount > minSplitForTopic ? " · có thể tách list" : " · chưa đủ để tách list"}</span>
+          ${isCustomized ? '<span class="tl-customized-badge">Đã tùy chỉnh</span>' : ""}
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline tl-unified-reset-btn" data-topic="${t}" style="font-size:11px; padding:6px 10px;" ${isCustomized ? "" : "disabled"}>Đặt lại mặc định</button>
+          <button class="btn btn-primary tl-unified-save-btn" data-topic="${t}" style="font-size:12px; padding:7px 14px;">Lưu 🎋</button>
+        </div>
       </div>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Số từ tối thiểu:
-        <input type="number" class="tl-timed-minsplit-input" data-topic="${t}" min="1" placeholder="${defaultMinSplit} (mặc định)" value="${currentMinSplit}" style="width:90px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Full List:
-        <input type="number" class="tl-timed-reward-input" data-topic="${t}" min="1" placeholder="${defaultReward} (mặc định)" value="${currentReward}" style="width:110px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Khi Tách List:
-        <input type="number" class="tl-timed-splitreward-input" data-topic="${t}" min="1" placeholder="${defaultSplitRewardForTopic} (mặc định)" value="${currentSplitReward}" style="width:110px;">
-      </label>
-      <button class="btn btn-primary tl-timed-reward-save-btn" data-topic="${t}" style="font-size:12px; padding:7px 12px;">Lưu</button>
+
+      <div class="tl-group-title">🎲 Thử Thách Thời Gian</div>
+      <div class="tl-group-grid">
+        <label class="tl-field-label">Số từ tối thiểu tách list
+          <input type="number" class="tl-u-input" data-field="timedMinSplit" data-topic="${t}" min="1" placeholder="${defaultMinSplit} (mặc định)" value="${currentMinSplit}">
+        </label>
+        <label class="tl-field-label">Trúc Full List
+          <input type="number" class="tl-u-input" data-field="timedReward" data-topic="${t}" min="0" placeholder="${defaultReward} (mặc định)" value="${currentReward}">
+        </label>
+        <label class="tl-field-label">Trúc Tách List
+          <input type="number" class="tl-u-input" data-field="timedSplitReward" data-topic="${t}" min="0" placeholder="${defaultSplitRewardForTopic} (mặc định)" value="${currentSplitReward}">
+        </label>
+      </div>
+
+      <div class="tl-group-title">📝 Kiểm Tra</div>
+      <div class="tl-group-grid">
+        <label class="tl-field-label">Số câu tối thiểu
+          <input type="number" class="tl-u-input" data-field="qzMin" data-topic="${t}" min="1" placeholder="${defaultQzMin} (mặc định)" value="${currentQzMin}">
+        </label>
+        <label class="tl-field-label">Trúc Full List
+          <input type="number" class="tl-u-input" data-field="qzFullReward" data-topic="${t}" min="0" placeholder="${defaultQzFullReward} (mặc định)" value="${currentQzFullReward}">
+        </label>
+        <label class="tl-field-label">Trúc Tách List
+          <input type="number" class="tl-u-input" data-field="qzSplitReward" data-topic="${t}" min="0" placeholder="${defaultQzSplitRewardForTopic} (mặc định)" value="${currentQzSplitReward}">
+        </label>
+        <label class="tl-field-label">Ngưỡng % tối thiểu nhận Trúc
+          <input type="number" class="tl-u-input" data-field="qzThresholdPct" data-topic="${t}" min="0" max="100" placeholder="${defaultQzThresholdPct}% (mặc định)" value="${currentQzThresholdPct}">
+        </label>
+        <label class="tl-field-label">Ngưỡng % sai chạy lại
+          <input type="number" class="tl-u-input" data-field="qzPct" data-topic="${t}" min="0" max="100" placeholder="${defaultQzPct}% (mặc định)" value="${currentQzPct}">
+        </label>
+      </div>
+
+      <div class="tl-group-title">🀄 Kiểm Tra Pinyin</div>
+      <div class="tl-group-grid">
+        <label class="tl-field-label">Số câu tối thiểu
+          <input type="number" class="tl-u-input" data-field="pyMin" data-topic="${t}" min="1" placeholder="${defaultPyMin} (mặc định)" value="${currentPyMin}">
+        </label>
+        <label class="tl-field-label">Trúc Full List
+          <input type="number" class="tl-u-input" data-field="pyFullReward" data-topic="${t}" min="0" placeholder="${defaultPyFullReward} (mặc định)" value="${currentPyFullReward}">
+        </label>
+        <label class="tl-field-label">Trúc Tách List
+          <input type="number" class="tl-u-input" data-field="pySplitReward" data-topic="${t}" min="0" placeholder="${defaultPySplitRewardForTopic} (mặc định)" value="${currentPySplitReward}">
+        </label>
+        <label class="tl-field-label">Ngưỡng % tối thiểu nhận Trúc
+          <input type="number" class="tl-u-input" data-field="pyThresholdPct" data-topic="${t}" min="0" max="100" placeholder="${defaultPyThresholdPct}% (mặc định)" value="${currentPyThresholdPct}">
+        </label>
+        <label class="tl-field-label">Ngưỡng % sai chạy lại
+          <input type="number" class="tl-u-input" data-field="pyPct" data-topic="${t}" min="0" max="100" placeholder="${defaultPyPct}% (mặc định)" value="${currentPyPct}">
+        </label>
+      </div>
+
+      <div class="tl-group-title">✍️ Đặt Câu</div>
+      <div class="tl-group-grid">
+        <label class="tl-field-label">Số từ tối thiểu ngẫu nhiên
+          <input type="number" class="tl-u-input" data-field="wcMin" data-topic="${t}" min="1" placeholder="${defaultWcMin} (mặc định)" value="${currentWcMin}">
+        </label>
+      </div>
     `;
     wrap.appendChild(row);
   });
 
-  wrap.querySelectorAll(".tl-timed-reward-save-btn").forEach(btn => {
+  wrap.querySelectorAll(".tl-unified-save-btn").forEach(btn => {
     btn.onclick = () => {
       const topic = btn.dataset.topic;
-      const rewardInput = wrap.querySelector(`.tl-timed-reward-input[data-topic="${CSS.escape(topic)}"]`);
-      const minSplitInput = wrap.querySelector(`.tl-timed-minsplit-input[data-topic="${CSS.escape(topic)}"]`);
-      const splitRewardInput = wrap.querySelector(`.tl-timed-splitreward-input[data-topic="${CSS.escape(topic)}"]`);
-      const rewardVal = parseInt(rewardInput?.value, 10);
-      const minSplitVal = parseInt(minSplitInput?.value, 10);
-      const splitRewardVal = parseInt(splitRewardInput?.value, 10);
+      const get = (field) => wrap.querySelector(`.tl-u-input[data-field="${field}"][data-topic="${CSS.escape(topic)}"]`);
+      const minSplitVal = parseInt(get("timedMinSplit")?.value, 10);
+      const rewardVal = parseInt(get("timedReward")?.value, 10);
+      const splitRewardVal = parseInt(get("timedSplitReward")?.value, 10);
+      const qzMinVal = parseInt(get("qzMin")?.value, 10);
+      const qzFullRewardVal = parseInt(get("qzFullReward")?.value, 10);
+      const qzSplitRewardVal = parseInt(get("qzSplitReward")?.value, 10);
+      const qzThresholdPctVal = parseInt(get("qzThresholdPct")?.value, 10);
+      const qzPctVal = parseInt(get("qzPct")?.value, 10);
+      const pyMinVal = parseInt(get("pyMin")?.value, 10);
+      const pyFullRewardVal = parseInt(get("pyFullReward")?.value, 10);
+      const pySplitRewardVal = parseInt(get("pySplitReward")?.value, 10);
+      const pyThresholdPctVal = parseInt(get("pyThresholdPct")?.value, 10);
+      const pyPctVal = parseInt(get("pyPct")?.value, 10);
+      const wcMinVal = parseInt(get("wcMin")?.value, 10);
+
       const cData2 = getCurrentClassData();
       if (!cData2.timedListRewards || typeof cData2.timedListRewards !== "object") cData2.timedListRewards = {};
       if (!cData2.timedMinSplitCounts || typeof cData2.timedMinSplitCounts !== "object") cData2.timedMinSplitCounts = {};
       if (!cData2.timedSplitRewards || typeof cData2.timedSplitRewards !== "object") cData2.timedSplitRewards = {};
-      if (rewardVal > 0) {
-        cData2.timedListRewards[topic] = rewardVal;
-      } else {
-        delete cData2.timedListRewards[topic];
-      }
-      if (minSplitVal > 0) {
-        cData2.timedMinSplitCounts[topic] = minSplitVal;
-      } else {
-        delete cData2.timedMinSplitCounts[topic];
-      }
-      if (splitRewardVal > 0) {
-        cData2.timedSplitRewards[topic] = splitRewardVal;
-      } else {
-        delete cData2.timedSplitRewards[topic];
-      }
-      saveState();
-      alert(`Đã lưu cấu hình cho "${topic}"!`);
-      renderTimedRewardsManager();
-    };
-  });
-}
-
-/* Quản lý số câu tối thiểu mục Kiểm Tra (Quiz) cho từng list — cùng cơ chế
-   "mặc định chung + tùy chỉnh riêng theo topic" như Thử Thách Thời Gian. */
-function renderQuizMinManager() {
-  const wrap = document.getElementById("tl-qz-min-list");
-  if (!wrap) return;
-  const cData = getCurrentClassData();
-  if (!cData.qzMinCounts || typeof cData.qzMinCounts !== "object") cData.qzMinCounts = {};
-  if (!cData.qzListRewards || typeof cData.qzListRewards !== "object") cData.qzListRewards = {};
-  if (!cData.qzSplitRewards || typeof cData.qzSplitRewards !== "object") cData.qzSplitRewards = {};
-  const topics = topicList();
-  const defaultMin = getQuizMinCount();
-
-  if (topics.length === 0) {
-    wrap.innerHTML = '<div class="empty-note">Lớp này chưa có list / chủ đề từ vựng nào.</div>';
-    return;
-  }
-
-  wrap.innerHTML = "";
-  topics.forEach(t => {
-    const wCount = allWords().filter(w => w.topic === t).length;
-    const defaultFullReward = getQuizListReward(t);
-    const defaultSplitReward = getQuizSplitReward(t);
-    const currentMin = (typeof cData.qzMinCounts[t] === "number" && cData.qzMinCounts[t] > 0)
-      ? cData.qzMinCounts[t] : "";
-    const currentFullReward = (typeof cData.qzListRewards[t] === "number" && cData.qzListRewards[t] > 0)
-      ? cData.qzListRewards[t] : "";
-    const currentSplitReward = (typeof cData.qzSplitRewards[t] === "number" && cData.qzSplitRewards[t] > 0)
-      ? cData.qzSplitRewards[t] : "";
-    const row = document.createElement("div");
-    row.style.cssText = "display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--paper); padding:10px 14px; border-radius:14px; border:2px solid var(--paper-darker);";
-    row.innerHTML = `
-      <div style="flex:1; min-width:140px;">
-        <strong style="font-size:13px;">${t}</strong>
-        <div style="font-size:11px; color:var(--ink-soft);">${wCount} từ</div>
-      </div>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Số từ tối thiểu:
-        <input type="number" class="tl-qz-min-input" data-topic="${t}" min="1" placeholder="${defaultMin} (mặc định)" value="${currentMin}" style="width:90px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Full List:
-        <input type="number" class="tl-qz-full-reward-input" data-topic="${t}" min="1" placeholder="${defaultFullReward} (mặc định)" value="${currentFullReward}" style="width:110px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Khi Tách List:
-        <input type="number" class="tl-qz-split-reward-input" data-topic="${t}" min="1" placeholder="${defaultSplitReward} (mặc định)" value="${currentSplitReward}" style="width:110px;">
-      </label>
-      <button class="btn btn-primary tl-qz-min-save-btn" data-topic="${t}" style="font-size:12px; padding:7px 12px;">Lưu</button>
-    `;
-    wrap.appendChild(row);
-  });
-
-  wrap.querySelectorAll(".tl-qz-min-save-btn").forEach(btn => {
-    btn.onclick = () => {
-      const topic = btn.dataset.topic;
-      const minInput = wrap.querySelector(`.tl-qz-min-input[data-topic="${CSS.escape(topic)}"]`);
-      const fullRewardInput = wrap.querySelector(`.tl-qz-full-reward-input[data-topic="${CSS.escape(topic)}"]`);
-      const splitRewardInput = wrap.querySelector(`.tl-qz-split-reward-input[data-topic="${CSS.escape(topic)}"]`);
-      const minVal = parseInt(minInput?.value, 10);
-      const fullRewardVal = parseInt(fullRewardInput?.value, 10);
-      const splitRewardVal = parseInt(splitRewardInput?.value, 10);
-      const cData2 = getCurrentClassData();
       if (!cData2.qzMinCounts || typeof cData2.qzMinCounts !== "object") cData2.qzMinCounts = {};
-      if (!cData2.qzListRewards || typeof cData2.qzListRewards !== "object") cData2.qzListRewards = {};
+      if (!cData2.qzFullRewards || typeof cData2.qzFullRewards !== "object") cData2.qzFullRewards = {};
       if (!cData2.qzSplitRewards || typeof cData2.qzSplitRewards !== "object") cData2.qzSplitRewards = {};
-      if (minVal > 0) {
-        cData2.qzMinCounts[topic] = minVal;
-      } else {
-        delete cData2.qzMinCounts[topic];
-      }
-      if (fullRewardVal > 0) {
-        cData2.qzListRewards[topic] = fullRewardVal;
-      } else {
-        delete cData2.qzListRewards[topic];
-      }
-      if (splitRewardVal > 0) {
-        cData2.qzSplitRewards[topic] = splitRewardVal;
-      } else {
-        delete cData2.qzSplitRewards[topic];
-      }
+      if (!cData2.qzThresholds || typeof cData2.qzThresholds !== "object") cData2.qzThresholds = {};
+      if (!cData2.qzRestartThresholds || typeof cData2.qzRestartThresholds !== "object") cData2.qzRestartThresholds = {};
+      if (!cData2.pyMinCounts || typeof cData2.pyMinCounts !== "object") cData2.pyMinCounts = {};
+      if (!cData2.pyFullRewards || typeof cData2.pyFullRewards !== "object") cData2.pyFullRewards = {};
+      if (!cData2.pySplitRewards || typeof cData2.pySplitRewards !== "object") cData2.pySplitRewards = {};
+      if (!cData2.pyThresholds || typeof cData2.pyThresholds !== "object") cData2.pyThresholds = {};
+      if (!cData2.pyRestartThresholds || typeof cData2.pyRestartThresholds !== "object") cData2.pyRestartThresholds = {};
+      if (!cData2.wcMinCounts || typeof cData2.wcMinCounts !== "object") cData2.wcMinCounts = {};
+
+      if (minSplitVal > 0) cData2.timedMinSplitCounts[topic] = minSplitVal; else delete cData2.timedMinSplitCounts[topic];
+      if (!isNaN(rewardVal) && rewardVal >= 0) cData2.timedListRewards[topic] = rewardVal; else delete cData2.timedListRewards[topic];
+      if (!isNaN(splitRewardVal) && splitRewardVal >= 0) cData2.timedSplitRewards[topic] = splitRewardVal; else delete cData2.timedSplitRewards[topic];
+      if (qzMinVal > 0) cData2.qzMinCounts[topic] = qzMinVal; else delete cData2.qzMinCounts[topic];
+      if (!isNaN(qzFullRewardVal) && qzFullRewardVal >= 0) cData2.qzFullRewards[topic] = qzFullRewardVal; else delete cData2.qzFullRewards[topic];
+      if (!isNaN(qzSplitRewardVal) && qzSplitRewardVal >= 0) cData2.qzSplitRewards[topic] = qzSplitRewardVal; else delete cData2.qzSplitRewards[topic];
+      if (!isNaN(qzThresholdPctVal) && qzThresholdPctVal >= 0 && qzThresholdPctVal <= 100) cData2.qzThresholds[topic] = qzThresholdPctVal; else delete cData2.qzThresholds[topic];
+      if (!isNaN(qzPctVal) && qzPctVal >= 0 && qzPctVal <= 100) cData2.qzRestartThresholds[topic] = qzPctVal; else delete cData2.qzRestartThresholds[topic];
+      if (pyMinVal > 0) cData2.pyMinCounts[topic] = pyMinVal; else delete cData2.pyMinCounts[topic];
+      if (!isNaN(pyFullRewardVal) && pyFullRewardVal >= 0) cData2.pyFullRewards[topic] = pyFullRewardVal; else delete cData2.pyFullRewards[topic];
+      if (!isNaN(pySplitRewardVal) && pySplitRewardVal >= 0) cData2.pySplitRewards[topic] = pySplitRewardVal; else delete cData2.pySplitRewards[topic];
+      if (!isNaN(pyThresholdPctVal) && pyThresholdPctVal >= 0 && pyThresholdPctVal <= 100) cData2.pyThresholds[topic] = pyThresholdPctVal; else delete cData2.pyThresholds[topic];
+      if (!isNaN(pyPctVal) && pyPctVal >= 0 && pyPctVal <= 100) cData2.pyRestartThresholds[topic] = pyPctVal; else delete cData2.pyRestartThresholds[topic];
+      if (wcMinVal > 0) cData2.wcMinCounts[topic] = wcMinVal; else delete cData2.wcMinCounts[topic];
+
       saveState();
-      alert(`Đã lưu cấu hình mục Kiểm Tra cho "${topic}"!`);
-      renderQuizMinManager();
+      alert(`Đã lưu toàn bộ cấu hình cho bài "${topic}"!`);
+      renderUnifiedListRows();
     };
   });
-}
 
-/* Quản lý riêng theo từng list: Số câu tối thiểu + Ngưỡng % sai để chạy lại
-   từ đầu cho mục Kiểm Tra Pinyin. */
-function renderPinyinTestManager() {
-  const wrap = document.getElementById("tl-py-min-list");
-  if (!wrap) return;
-  const cData = getCurrentClassData();
-  if (!cData.pyMinCounts || typeof cData.pyMinCounts !== "object") cData.pyMinCounts = {};
-  if (!cData.pyRestartThresholds || typeof cData.pyRestartThresholds !== "object") cData.pyRestartThresholds = {};
-  if (!cData.pyListRewards || typeof cData.pyListRewards !== "object") cData.pyListRewards = {};
-  if (!cData.pySplitRewards || typeof cData.pySplitRewards !== "object") cData.pySplitRewards = {};
-  const topics = topicList();
-  const defaultMin = getPyMinCount();
-  const defaultPct = getPyRestartThreshold();
-
-  if (topics.length === 0) {
-    wrap.innerHTML = '<div class="empty-note">Lớp này chưa có list / chủ đề từ vựng nào.</div>';
-    return;
-  }
-
-  wrap.innerHTML = "";
-  topics.forEach(t => {
-    const wCount = allWords().filter(w => w.topic === t).length;
-    const defaultFullReward = getPyListReward(t);
-    const defaultSplitReward = getPySplitReward(t);
-    const currentMin = (typeof cData.pyMinCounts[t] === "number" && cData.pyMinCounts[t] > 0)
-      ? cData.pyMinCounts[t] : "";
-    const currentPct = (typeof cData.pyRestartThresholds[t] === "number" && cData.pyRestartThresholds[t] >= 0)
-      ? cData.pyRestartThresholds[t] : "";
-    const currentFullReward = (typeof cData.pyListRewards[t] === "number" && cData.pyListRewards[t] > 0)
-      ? cData.pyListRewards[t] : "";
-    const currentSplitReward = (typeof cData.pySplitRewards[t] === "number" && cData.pySplitRewards[t] > 0)
-      ? cData.pySplitRewards[t] : "";
-    const row = document.createElement("div");
-    row.style.cssText = "display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--paper); padding:10px 14px; border-radius:14px; border:2px solid var(--paper-darker);";
-    row.innerHTML = `
-      <div style="flex:1; min-width:140px;">
-        <strong style="font-size:13px;">${t}</strong>
-        <div style="font-size:11px; color:var(--ink-soft);">${wCount} từ</div>
-      </div>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Số từ tối thiểu:
-        <input type="number" class="tl-py-min-input" data-topic="${t}" min="1" placeholder="${defaultMin} (mặc định)" value="${currentMin}" style="width:90px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Full List:
-        <input type="number" class="tl-py-full-reward-input" data-topic="${t}" min="1" placeholder="${defaultFullReward} (mặc định)" value="${currentFullReward}" style="width:110px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Trúc Khi Tách List:
-        <input type="number" class="tl-py-split-reward-input" data-topic="${t}" min="1" placeholder="${defaultSplitReward} (mặc định)" value="${currentSplitReward}" style="width:110px;">
-      </label>
-      <label style="font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        Ngưỡng % sai chạy lại:
-        <input type="number" class="tl-py-pct-input" data-topic="${t}" min="0" max="100" placeholder="${defaultPct}% (mặc định)" value="${currentPct}" style="width:90px;">
-      </label>
-      <button class="btn btn-primary tl-py-min-save-btn" data-topic="${t}" style="font-size:12px; padding:7px 12px;">Lưu</button>
-    `;
-    wrap.appendChild(row);
-  });
-
-  wrap.querySelectorAll(".tl-py-min-save-btn").forEach(btn => {
+  wrap.querySelectorAll(".tl-unified-reset-btn").forEach(btn => {
     btn.onclick = () => {
+      if (btn.disabled) return;
       const topic = btn.dataset.topic;
-      const minInput = wrap.querySelector(`.tl-py-min-input[data-topic="${CSS.escape(topic)}"]`);
-      const pctInput = wrap.querySelector(`.tl-py-pct-input[data-topic="${CSS.escape(topic)}"]`);
-      const fullRewardInput = wrap.querySelector(`.tl-py-full-reward-input[data-topic="${CSS.escape(topic)}"]`);
-      const splitRewardInput = wrap.querySelector(`.tl-py-split-reward-input[data-topic="${CSS.escape(topic)}"]`);
-      const minVal = parseInt(minInput?.value, 10);
-      const pctVal = parseInt(pctInput?.value, 10);
-      const fullRewardVal = parseInt(fullRewardInput?.value, 10);
-      const splitRewardVal = parseInt(splitRewardInput?.value, 10);
+      if (!confirm(`Đặt lại "${topic}" về mức mặc định chung (xóa mọi tùy chỉnh riêng của bài này)?`)) return;
       const cData2 = getCurrentClassData();
-      if (!cData2.pyMinCounts || typeof cData2.pyMinCounts !== "object") cData2.pyMinCounts = {};
-      if (!cData2.pyRestartThresholds || typeof cData2.pyRestartThresholds !== "object") cData2.pyRestartThresholds = {};
-      if (!cData2.pyListRewards || typeof cData2.pyListRewards !== "object") cData2.pyListRewards = {};
-      if (!cData2.pySplitRewards || typeof cData2.pySplitRewards !== "object") cData2.pySplitRewards = {};
-      if (minVal > 0) cData2.pyMinCounts[topic] = minVal; else delete cData2.pyMinCounts[topic];
-      if (!isNaN(pctVal) && pctVal >= 0 && pctVal <= 100) cData2.pyRestartThresholds[topic] = pctVal; else delete cData2.pyRestartThresholds[topic];
-      if (fullRewardVal > 0) cData2.pyListRewards[topic] = fullRewardVal; else delete cData2.pyListRewards[topic];
-      if (splitRewardVal > 0) cData2.pySplitRewards[topic] = splitRewardVal; else delete cData2.pySplitRewards[topic];
+      [cData2.timedMinSplitCounts, cData2.timedListRewards, cData2.timedSplitRewards,
+       cData2.qzMinCounts, cData2.qzFullRewards, cData2.qzSplitRewards, cData2.qzThresholds, cData2.qzRestartThresholds,
+       cData2.pyMinCounts, cData2.pyFullRewards, cData2.pySplitRewards, cData2.pyThresholds,
+       cData2.pyRestartThresholds, cData2.wcMinCounts].forEach(obj => {
+        if (obj && typeof obj === "object") delete obj[topic];
+      });
       saveState();
-      alert(`Đã lưu cấu hình mục Kiểm Tra Pinyin cho "${topic}"!`);
-      renderPinyinTestManager();
+      alert(`Đã đặt lại "${topic}" về mức mặc định chung!`);
+      renderUnifiedListRows();
     };
   });
 }
@@ -7778,21 +8097,13 @@ function renderTeacherCMS() {
   if (annInp) annInp.value = state.announcement || state.gamification.announcement || "";
 
   const rm = state.gamification.rewardMatrix;
+  if (document.getElementById("rm-quiz")) document.getElementById("rm-quiz").value = rm.quiz || 10;
+  if (document.getElementById("rm-pinyin")) document.getElementById("rm-pinyin").value = rm.pinyin || 10;
   if (document.getElementById("rm-timed")) document.getElementById("rm-timed").value = rm.timed || 10;
   if (document.getElementById("rm-dictation")) document.getElementById("rm-dictation").value = rm.dictation || 15;
   if (document.getElementById("rm-sentence")) document.getElementById("rm-sentence").value = rm.sentence || 15;
   if (document.getElementById("rm-grammar")) document.getElementById("rm-grammar").value = rm.grammar || 20;
   if (document.getElementById("rm-streak")) document.getElementById("rm-streak").value = rm.streak || 30;
-
-  const qzTiers = state.gamification.quizRewardTiers || { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
-  if (document.getElementById("rm-qz-threshold-pct")) document.getElementById("rm-qz-threshold-pct").value = qzTiers.passThreshold;
-  if (document.getElementById("rm-qz-threshold-reward")) document.getElementById("rm-qz-threshold-reward").value = qzTiers.rewardAtThreshold;
-  if (document.getElementById("rm-qz-full-reward")) document.getElementById("rm-qz-full-reward").value = qzTiers.rewardFull;
-
-  const pyTiers = state.gamification.pinyinRewardTiers || { passThreshold: 50, rewardAtThreshold: 3, rewardFull: 10 };
-  if (document.getElementById("rm-py-threshold-pct")) document.getElementById("rm-py-threshold-pct").value = pyTiers.passThreshold;
-  if (document.getElementById("rm-py-threshold-reward")) document.getElementById("rm-py-threshold-reward").value = pyTiers.rewardAtThreshold;
-  if (document.getElementById("rm-py-full-reward")) document.getElementById("rm-py-full-reward").value = pyTiers.rewardFull;
 
   /* Award Badges Dropdown (danh sách huy hiệu — vẫn thuộc cấu hình cục bộ
      của giáo viên, KHÔNG phải danh sách học viên nên giữ nguyên ở đây) */
@@ -7819,19 +8130,27 @@ function renderTeacherCMS() {
   const minSplitInp = document.getElementById("tl-min-split-count");
   if (minSplitInp) minSplitInp.value = getTimedMinSplitCount();
 
-  /* Số câu tối thiểu mặc định mục Kiểm Tra */
+  /* Số câu tối thiểu, Ngưỡng % tối thiểu nhận Trúc & Ngưỡng % sai chạy lại — mặc định mục Kiểm Tra */
   const qzMinInp = document.getElementById("tl-qz-min-count");
   if (qzMinInp) qzMinInp.value = getQuizMinCount();
+  const qzThresholdInp = document.getElementById("tl-qz-threshold-pct");
+  if (qzThresholdInp) qzThresholdInp.value = getQuizPassThreshold();
+  const qzRestartInp = document.getElementById("tl-qz-restart-pct");
+  if (qzRestartInp) qzRestartInp.value = getQuizRestartThreshold();
 
-  /* Số câu tối thiểu & Ngưỡng % sai chạy lại — mặc định mục Kiểm Tra Pinyin */
+  /* Số câu tối thiểu, Ngưỡng % tối thiểu nhận Trúc & Ngưỡng % sai chạy lại — mặc định mục Kiểm Tra Pinyin */
   const pyMinInp = document.getElementById("tl-py-min-count");
   if (pyMinInp) pyMinInp.value = getPyMinCount();
+  const pyThresholdInp = document.getElementById("tl-py-threshold-pct");
+  if (pyThresholdInp) pyThresholdInp.value = getPinyinPassThreshold();
   const pyPctInp = document.getElementById("tl-py-restart-pct");
   if (pyPctInp) pyPctInp.value = getPyRestartThreshold();
 
-  renderTimedRewardsManager();
-  renderQuizMinManager();
-  renderPinyinTestManager();
+  /* Số từ tối thiểu ngẫu nhiên — mặc định mục Đặt Câu */
+  const wcMinInp = document.getElementById("tl-wc-min-count");
+  if (wcMinInp) wcMinInp.value = getWcMinCount();
+
+  renderUnifiedListSettingsManager();
   renderGrammarTeacherManager();
   renderTeacherVideoManagerList();
   renderTeacherWordList();
@@ -7871,6 +8190,114 @@ function refreshTeacherRosterUI() {
   renderTeacherStudentAccountManager();
 }
 
+/* =========================================================
+   TỔNG HỢP BXH NHANH (TOP 3 DẪN ĐẦU + CẢNH BÁO TOP 3 THẤP NHẤT)
+   Dùng cho Thầy Marcus: bấm 1 nút là chốt "ảnh chụp nhanh" BXH
+   ngay tại thời điểm đó, có thể copy dán thẳng vào nhóm Zalo.
+   - Luôn kéo dữ liệu MỚI NHẤT từ server (refreshServerRoster)
+     để đúng thời điểm bấm nút, không dùng dữ liệu cache cũ.
+   - Loại bỏ tài khoản role "teacher" (nick Thầy/Cô tự tạo để
+     xem lớp) khỏi danh sách thống kê, giữ đúng yêu cầu chỉ
+     thống kê học viên thật.
+   - Xếp hạng theo tổng XP (đồng bộ với BXH "Level Gấu & Trúc").
+   - Huy hiệu hiển thị cạnh Top 3 là cấp cao nhất nhóm "Tốc Độ
+     Ánh Sáng" (Thử Thách Thời Gian) mà học viên đó đã đạt.
+   ========================================================= */
+function getHighestTimedBadgeInfo(unlockedIds = []) {
+  const group = BADGE_GROUPS.find(g => g.groupId === "timed");
+  if (!group) return null;
+  let best = null;
+  group.tiers.forEach(t => {
+    const bId = `timed_t${t.tier}`;
+    if (unlockedIds.includes(bId) && (!best || t.tier > best.tier)) best = t;
+  });
+  return best; // { tier, threshold, xp, charm, name } hoặc null
+}
+
+async function generateLeaderboardSummary() {
+  const btn = document.getElementById("cms-gen-lb-summary-btn");
+  const resultBox = document.getElementById("cms-lb-summary-result");
+  const textarea = document.getElementById("cms-lb-summary-text");
+  if (!btn || !resultBox || !textarea) return;
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "⏳ Đang tổng hợp...";
+
+  try {
+    /* Luôn lấy roster mới nhất từ server đúng thời điểm bấm nút */
+    await refreshServerRoster();
+
+    const students = (serverRoster || []).filter(s => s.role !== "teacher");
+
+    if (students.length === 0) {
+      alert(`Lớp "${state.currentClassName || ''}" hiện chưa có học viên nào để tổng hợp BXH.`);
+      return;
+    }
+
+    const enriched = students.map(s => {
+      const charm = calcPandaCharm(s.decorations || []) + (s.badgeCharmBonus || 0);
+      const lDetails = calcLevelDetails(s.totalXp || 0, charm);
+      const timedBadge = getHighestTimedBadgeInfo(s.unlockedBadges || []);
+      return {
+        name: s.displayName || s.username,
+        totalXp: s.totalXp || 0,
+        level: lDetails.level,
+        timedBadge
+      };
+    });
+
+    enriched.sort((a, b) => b.totalXp - a.totalXp);
+
+    const top3 = enriched.slice(0, 3);
+    const bottomStartIdx = Math.max(top3.length, enriched.length - 3);
+    const bottom3 = enriched.slice(bottomStartIdx);
+
+    const now = new Date();
+    const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const medals = ["🥇", "🥈", "🥉"];
+
+    let lines = [];
+    lines.push(`🐼🎋 CẬP NHẬT BXH ${state.currentClassName ? "— " + state.currentClassName + " " : ""}(${dateStr}, ${timeStr})`);
+    lines.push("");
+    lines.push("🏆 TOP 3 DẪN ĐẦU:");
+    top3.forEach((s, idx) => {
+      let line = `${medals[idx] || "🎖️"} TOP${idx + 1}: ${s.name.toUpperCase()} – ${s.totalXp} XP`;
+      if (s.timedBadge) {
+        line += ` — đã có huy hiệu ⚡ Tốc Độ Ánh Sáng cấp ${s.timedBadge.tier} (${s.timedBadge.threshold} lần vượt Thử Thách Thời Gian)`;
+      }
+      lines.push(line);
+    });
+
+    if (bottom3.length > 0) {
+      lines.push("");
+      const levels = bottom3.map(s => s.level);
+      const sameLevel = levels.every(l => l === levels[0]);
+      const names = bottom3.map(s => s.name.toUpperCase()).join(", ");
+      if (sameLevel) {
+        lines.push(`⚠️ CẢNH BÁO — cần cố gắng hơn: ${names}, vẫn đang dừng ở LV ${levels[0]}`);
+      } else {
+        const detail = bottom3.map(s => `${s.name.toUpperCase()} (LV ${s.level})`).join(", ");
+        lines.push(`⚠️ CẢNH BÁO — cần cố gắng hơn: ${detail}`);
+      }
+    }
+
+    lines.push("");
+    lines.push("💪 Cả lớp cùng nhau tích Trúc, giữ vững phong độ nha! 🐼🎋");
+
+    textarea.value = lines.join("\n");
+    resultBox.style.display = "block";
+    const labelEl = document.getElementById("cms-lbsum-class-label");
+    if (labelEl) labelEl.textContent = state.currentClassName || "(chưa chọn lớp)";
+  } catch (err) {
+    alert("Có lỗi khi tổng hợp BXH, vui lòng thử lại: " + (err && err.message ? err.message : err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
 function renderTeacherStudentAccountManager() {
   const container = document.getElementById("cms-student-accounts-list");
   if (!container) return;
@@ -7878,6 +8305,8 @@ function renderTeacherStudentAccountManager() {
 
   const labelEl = document.getElementById("cms-current-class-label");
   if (labelEl) labelEl.textContent = state.currentClassName || "(chưa chọn lớp)";
+  const lbSumLabelEl = document.getElementById("cms-lbsum-class-label");
+  if (lbSumLabelEl) lbSumLabelEl.textContent = state.currentClassName || "(chưa chọn lớp)";
 
   const accs = getLocalAccounts();
   const studentMap = {};
@@ -8135,9 +8564,11 @@ function renderGrammarTeacherManager() {
   if (!wrap) return;
   const cData = getCurrentClassData();
   wrap.innerHTML = "";
+  const defaultGrammarReward = state.gamification?.rewardMatrix?.grammar || 20;
 
   (cData.grammarSections || []).forEach((sec, sIdx) => {
     const subCount = (cData.grammarSubmissions || []).filter(s => s.sectionId === sec.id).length;
+    const currentGReward = (typeof sec.reward === "number" && sec.reward >= 0) ? sec.reward : "";
     const box = document.createElement("div");
     box.style.cssText = "background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px; margin-bottom:12px;";
     box.innerHTML = `
@@ -8146,6 +8577,13 @@ function renderGrammarTeacherManager() {
         <button class="btn btn-bad del-gsec-btn" data-id="${sec.id}" style="font-size:10px; padding:4px 8px;">Xóa bài tập</button>
       </div>
       <div style="font-size:11px; color:var(--ink-soft); font-weight:700; margin-bottom:8px;">👥 ${subCount} học sinh đã nộp bài tập này</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; background:var(--card-bg); border-radius:10px; padding:8px 10px;">
+        <label style="font-size:11px; font-weight:700; color:var(--seal-dark); display:flex; align-items:center; gap:6px;">🎋 Trúc thưởng khi nộp (0 = không cộng Trúc, dùng khi Bài Tập đã được ôn kỹ / bị làm lại để spam Trúc):
+          <input type="number" class="gsec-reward-in" data-id="${sec.id}" min="0" placeholder="${defaultGrammarReward} (mặc định)" value="${currentGReward}" style="width:90px;">
+        </label>
+        <button class="btn btn-primary gsec-reward-save-btn" data-id="${sec.id}" style="font-size:10px; padding:5px 10px;">Lưu Trúc</button>
+        ${currentGReward !== "" ? `<button class="btn btn-outline gsec-reward-reset-btn" data-id="${sec.id}" style="font-size:10px; padding:5px 10px;">Đặt lại mặc định</button>` : ""}
+      </div>
       <div class="gitems-list" style="margin-bottom:8px;"></div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
         <input type="text" class="gitem-name-in" placeholder="Tên điểm ngữ pháp (vd: 着)">
@@ -8157,6 +8595,7 @@ function renderGrammarTeacherManager() {
     const itemsList = box.querySelector(".gitems-list");
     (sec.items || []).forEach((item, iIdx) => {
       const itemRow = document.createElement("div");
+
       itemRow.style.cssText = "display:flex; justify-content:space-between; font-size:12px; background:var(--card-bg); padding:6px 10px; border-radius:8px; margin-bottom:4px;";
       itemRow.innerHTML = `
         <span><strong>${iIdx + 1}. ${item.name}</strong> - ${item.description || ''}</span>
@@ -8172,6 +8611,40 @@ function renderGrammarTeacherManager() {
     b.onclick = () => {
       const cData = getCurrentClassData();
       cData.grammarSections = cData.grammarSections.filter(s => s.id !== b.dataset.id);
+      saveState();
+      renderGrammarTeacherManager();
+      renderGrammarStudent();
+    };
+  });
+
+  wrap.querySelectorAll(".gsec-reward-save-btn").forEach(b => {
+    b.onclick = () => {
+      const box = b.closest("div");
+      const input = box.querySelector(`.gsec-reward-in[data-id="${CSS.escape(b.dataset.id)}"]`);
+      const raw = input ? input.value.trim() : "";
+      const cData = getCurrentClassData();
+      const sec = cData.grammarSections.find(s => s.id === b.dataset.id);
+      if (!sec) return;
+      if (raw === "") {
+        delete sec.reward;
+      } else {
+        const val = parseInt(raw, 10);
+        if (isNaN(val) || val < 0) return alert("Vui lòng nhập số Trúc hợp lệ (0 hoặc lớn hơn)!");
+        sec.reward = val;
+      }
+      saveState();
+      alert(`Đã lưu Trúc thưởng cho "${sec.title}"!`);
+      renderGrammarTeacherManager();
+      renderGrammarStudent();
+    };
+  });
+
+  wrap.querySelectorAll(".gsec-reward-reset-btn").forEach(b => {
+    b.onclick = () => {
+      const cData = getCurrentClassData();
+      const sec = cData.grammarSections.find(s => s.id === b.dataset.id);
+      if (!sec) return;
+      delete sec.reward;
       saveState();
       renderGrammarTeacherManager();
       renderGrammarStudent();
@@ -8370,7 +8843,7 @@ function refreshActiveViewData() {
   if (vId === "view-quiz") { fillTopicSelect(qzTopicSel); updateQuizCountHint(); }
   if (vId === "view-pinyintest") { fillTopicSelect(pyTopicSel); updatePyCountHint(); }
   if (vId === "view-timed") renderTimedIdle();
-  if (vId === "view-wordchallenge") fillTopicSelect(wcTopicSel);
+  if (vId === "view-wordchallenge") { fillTopicSelect(wcTopicSel); updateWcCountHint(); }
   if (vId === "view-grammar") renderGrammarStudent();
   if (vId === "view-classtest") renderClassTestStudent();
   if (vId === "view-dictation") initDictationView();
