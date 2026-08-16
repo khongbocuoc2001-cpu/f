@@ -150,11 +150,232 @@
   .class-item-box:hover{ border-color:var(--jade); background:var(--accent-light); transform:translateY(-2px); box-shadow:var(--shadow-md); }
 
   /* Modals */
-  #class-pass-modal, #dictation-pass-modal, #levelup-modal, #shop-modal, #steal-modal, #gift-modal, #transform-modal, #reincarnation-modal{
+  #class-pass-modal, #dictation-pass-modal, #levelup-modal, #shop-modal, #steal-modal, #gift-modal, #transform-modal, #reincarnation-modal, #wheel-modal, #fishing-modal, #lantern-modal, #kite-modal, #fortune-modal, #pot-modal{
     position:fixed; inset:0; background:rgba(15,28,22,0.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:10005; display:none; align-items:center; justify-content:center; padding:20px;
   }
   .pass-modal-card{ background:var(--card-bg); border:1px solid var(--paper-darker); border-radius:var(--radius-lg); padding:26px; max-width:420px; width:100%; text-align:center; box-shadow:var(--shadow-lg); position:relative; animation:modalPop 0.22s var(--ease); }
   @keyframes modalPop{ from{ opacity:0; transform:scale(0.94) translateY(8px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+
+  /* Minigames Grid */
+  .minigame-card{ background:var(--card-bg); border:2px solid var(--paper-darker); border-radius:var(--radius-lg); padding:20px 16px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow:var(--shadow-md); transition:transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+  .minigame-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:var(--gold); }
+  .minigame-icon{ font-size:44px; }
+  .minigame-name{ font-family:var(--serif); font-weight:800; color:var(--seal-dark); font-size:15px; }
+  .minigame-desc{ font-size:12px; color:var(--ink-soft); font-weight:600; line-height:1.4; min-height:34px; }
+
+  /* Vòng Quay Lễ Hội — hiệu ứng quay đẹp hơn */
+  .wheel-glow-ring{
+    position:absolute; inset:-16px; border-radius:50%; z-index:0; opacity:0.6;
+    background: conic-gradient(from 0deg, var(--gold), transparent 22%, var(--gold) 45%, transparent 65%, var(--gold) 88%, transparent 100%);
+    filter: blur(11px);
+    animation: wheelAuraSpin 3s linear infinite;
+  }
+  @keyframes wheelAuraSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  #wheel-svg{ position:relative; z-index:1; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.25)); transition: transform 4.5s cubic-bezier(.17,.67,.14,1); }
+  #wheel-svg.spinning{ filter: drop-shadow(0 6px 14px rgba(0,0,0,0.25)) blur(1.4px); }
+
+  #wheel-pointer{ transform: translateX(-50%); transform-origin: top center; }
+  #wheel-pointer.bounce{ animation: wheelPointerBounce 0.55s ease; }
+  @keyframes wheelPointerBounce{
+    0%{ transform: translateX(-50%) rotate(0deg); }
+    22%{ transform: translateX(-50%) rotate(-22deg); }
+    46%{ transform: translateX(-50%) rotate(16deg); }
+    68%{ transform: translateX(-50%) rotate(-9deg); }
+    86%{ transform: translateX(-50%) rotate(4deg); }
+    100%{ transform: translateX(-50%) rotate(0deg); }
+  }
+
+  #wheel-stage{ transform-origin:center center; }
+  #wheel-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  @keyframes wheelLandBump{
+    0%{ transform: scale(1); }
+    32%{ transform: scale(1.07); }
+    62%{ transform: scale(0.98); }
+    100%{ transform: scale(1); }
+  }
+  #wheel-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
+  @keyframes wheelShake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-7px) rotate(-1.5deg); }
+    40%{ transform:translateX(7px) rotate(1.5deg); }
+    60%{ transform:translateX(-5px) rotate(-1deg); }
+    80%{ transform:translateX(5px) rotate(1deg); }
+  }
+
+  .wheel-flash-ring{
+    position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:3;
+    box-shadow: 0 0 0 0 rgba(212,175,55,0.65);
+    animation: wheelFlashPulse 0.75s ease-out forwards;
+  }
+  @keyframes wheelFlashPulse{
+    0%{ box-shadow: 0 0 0 0 rgba(212,175,55,0.65); opacity:1; }
+    100%{ box-shadow: 0 0 0 46px rgba(212,175,55,0); opacity:0; }
+  }
+
+  /* Câu Cá Trúc — ao nước, cần câu, phao câu */
+  #fishing-pond{
+    position:relative; width:100%; height:180px; margin:0 auto 14px; border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, #A8D8E8 0%, #4FA8C9 45%, #2E7DA3 100%);
+    border:3px solid var(--gold); box-shadow: inset 0 6px 18px rgba(0,0,0,0.18);
+  }
+  #fishing-pond::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.35), transparent 55%);
+  }
+  .pond-ripple{
+    position:absolute; border-radius:50%; border:2px solid rgba(255,255,255,0.55); pointer-events:none;
+    animation: pondRippleGrow 1.6s ease-out forwards;
+  }
+  @keyframes pondRippleGrow{
+    0%{ width:8px; height:8px; opacity:0.9; }
+    100%{ width:120px; height:120px; margin-left:-56px; margin-top:-56px; opacity:0; }
+  }
+  #fishing-rod-line{
+    position:absolute; top:0; left:50%; width:2px; background:rgba(255,255,255,0.85);
+    transform:translateX(-50%); transition: height 0.4s ease;
+  }
+  #fishing-bobber{
+    position:absolute; left:50%; transform:translate(-50%,0); font-size:26px; z-index:4;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); transition: top 0.4s ease;
+  }
+  #fishing-bobber.dipping{ animation: bobberDip 0.55s ease-in-out infinite; }
+  @keyframes bobberDip{
+    0%,100%{ transform:translate(-50%,0); }
+    50%{ transform:translate(-50%,10px); }
+  }
+  #fishing-catch-reveal{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:52px; opacity:0; transform:scale(0.4); z-index:5;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+  }
+  #fishing-catch-reveal.pop{ animation: fishingCatchPop 0.6s cubic-bezier(.17,.89,.32,1.28) forwards; }
+  @keyframes fishingCatchPop{
+    0%{ opacity:0; transform:scale(0.2) translateY(20px); }
+    60%{ opacity:1; transform:scale(1.15) translateY(-4px); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  #fishing-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  #fishing-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
+
+  /* Thả Đèn Lồng Ước Nguyện — trời đêm, đèn bay lên */
+  #lantern-sky{
+    position:relative; width:100%; height:220px; margin:0 auto 14px; border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, #0D1B3E 0%, #1A2E5C 55%, #2E4172 100%);
+    border:3px solid var(--gold); box-shadow: inset 0 6px 18px rgba(0,0,0,0.3);
+  }
+  .lantern-star{
+    position:absolute; border-radius:50%; background:#fff; opacity:0.7;
+    animation: lanternStarTwinkle 2.4s ease-in-out infinite;
+  }
+  @keyframes lanternStarTwinkle{ 0%,100%{ opacity:0.3; } 50%{ opacity:0.9; } }
+  #lantern-moon{ position:absolute; top:12px; right:18px; font-size:26px; opacity:0.9; filter:drop-shadow(0 0 6px rgba(255,255,255,0.5)); }
+  #lantern-icon{
+    position:absolute; left:50%; bottom:14px; font-size:34px; transform:translateX(-50%);
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); transition: bottom 2.2s cubic-bezier(.22,.61,.36,1), opacity 0.6s ease, transform 2.2s ease;
+  }
+  #lantern-icon.rising{ transform:translateX(-50%) rotate(-4deg); }
+  #lantern-reveal{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:50px; opacity:0; transform:scale(0.4); z-index:5;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  }
+  #lantern-reveal.pop{ animation: fishingCatchPop 0.6s cubic-bezier(.17,.89,.32,1.28) forwards; }
+  #lantern-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  #lantern-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
+
+  /* Thả Diều Tri Thức — bầu trời ban ngày, diều bay cao/thấp theo câu trả lời */
+  #kite-sky{
+    position:relative; width:100%; height:220px; margin:0 auto 14px; border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, #8FCBEF 0%, #BEE4F5 55%, #E3F5EA 100%);
+    border:3px solid var(--gold); box-shadow: inset 0 6px 18px rgba(0,0,0,0.12);
+  }
+  .kite-cloud{
+    position:absolute; opacity:0.85; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+    animation: kiteCloudDrift 14s linear infinite;
+  }
+  @keyframes kiteCloudDrift{ 0%{ transform:translateX(-10%); } 100%{ transform:translateX(10%); } }
+  #kite-sun{ position:absolute; top:10px; right:18px; font-size:26px; opacity:0.95; filter:drop-shadow(0 0 6px rgba(255,220,120,0.7)); }
+  #kite-icon{
+    position:absolute; left:50%; bottom:14px; font-size:34px; transform:translateX(-50%);
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25)); transition: bottom 2.2s cubic-bezier(.22,.61,.36,1), opacity 0.6s ease, transform 2.2s ease;
+  }
+  #kite-icon.rising{ transform:translateX(-50%) rotate(-6deg); }
+  #kite-reveal{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:50px; opacity:0; transform:scale(0.4); z-index:5;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  #kite-reveal.pop{ animation: fishingCatchPop 0.6s cubic-bezier(.17,.89,.32,1.28) forwards; }
+  #kite-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  #kite-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
+  #kite-question-card{
+    background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:16px; margin-bottom:14px; text-align:center;
+  }
+  #kite-question-card .hanzi{ font-family:var(--serif); font-size:34px; color:var(--seal-dark); font-weight:800; }
+  #kite-question-card .pinyin{ font-family:var(--mono); font-size:15px; color:var(--jade-dark); margin-top:4px; font-weight:700; }
+  #kite-question-options{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  #kite-question-options .option-btn{ padding:12px 8px; font-size:13px; }
+
+  /* Bốc Xăm Vận May — ống xăm cổ trang, rút thẻ */
+  #fortune-shrine{
+    position:relative; width:100%; height:190px; margin:0 auto 14px; border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, #FBEFD9 0%, #F3D9A8 60%, #E8C078 100%);
+    border:3px solid var(--seal-dark); box-shadow: inset 0 6px 18px rgba(0,0,0,0.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  #fortune-tube{ font-size:64px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25)); transition: transform 0.12s ease; }
+  #fortune-tube.shaking{ animation: fortuneTubeShake 0.5s ease-in-out infinite; }
+  @keyframes fortuneTubeShake{
+    0%,100%{ transform:rotate(0deg) translateX(0); }
+    20%{ transform:rotate(-6deg) translateX(-4px); }
+    40%{ transform:rotate(5deg) translateX(3px); }
+    60%{ transform:rotate(-4deg) translateX(-3px); }
+    80%{ transform:rotate(3deg) translateX(2px); }
+  }
+  #fortune-stick{
+    position:absolute; left:50%; bottom:36%; transform:translate(-50%,0) scale(0.3); font-size:15px;
+    background:#FFF8E1; border:2px solid var(--gold); border-radius:8px; padding:10px 8px;
+    font-family:var(--serif); font-weight:800; color:var(--seal-dark); text-align:center; min-width:96px;
+    opacity:0; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:5;
+  }
+  #fortune-stick.pop{ animation: fortuneStickPop 0.65s cubic-bezier(.17,.89,.32,1.28) forwards; }
+  @keyframes fortuneStickPop{
+    0%{ opacity:0; transform:translate(-50%,20px) scale(0.3) rotate(-8deg); }
+    60%{ opacity:1; transform:translate(-50%,-8px) scale(1.08) rotate(3deg); }
+    100%{ opacity:1; transform:translate(-50%,0) scale(1) rotate(0deg); }
+  }
+  #fortune-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  #fortune-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
+
+  /* Đập Niêu Đất — sân đất nung, lưới niêu để chọn đập */
+  #pot-yard{
+    position:relative; width:100%; padding:18px 10px; margin:0 auto 14px; border-radius:18px;
+    background: linear-gradient(180deg, #D8B892 0%, #C69A6D 60%, #B5824F 100%);
+    border:3px solid var(--seal-dark); box-shadow: inset 0 6px 18px rgba(0,0,0,0.2);
+  }
+  #pot-cluster{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; max-width:300px; margin:0 auto; }
+  .pot-item{
+    background:transparent; border:none; cursor:pointer; font-size:40px; padding:8px 0; border-radius:12px;
+    transition: transform 0.15s ease, filter 0.15s ease; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.25));
+  }
+  .pot-item:hover:not(:disabled){ transform:translateY(-3px) scale(1.06); }
+  .pot-item:disabled{ cursor:default; opacity:0.55; }
+  .pot-item.smashing{ animation: potSmashShake 0.35s ease; }
+  @keyframes potSmashShake{
+    0%,100%{ transform:translateX(0) rotate(0deg); }
+    25%{ transform:translateX(-4px) rotate(-6deg); }
+    50%{ transform:translateX(4px) rotate(6deg); }
+    75%{ transform:translateX(-3px) rotate(-3deg); }
+  }
+  .pot-item.broken-reveal{ animation: potBrokenPop 0.55s cubic-bezier(.17,.89,.32,1.28) forwards; }
+  @keyframes potBrokenPop{
+    0%{ transform:scale(0.6) rotate(0deg); }
+    55%{ transform:scale(1.25) rotate(6deg); }
+    100%{ transform:scale(1) rotate(0deg); }
+  }
+  #pot-stage.wheel-land-bump{ animation: wheelLandBump 0.45s ease; }
+  #pot-stage.wheel-shake{ animation: wheelShake 0.42s ease; }
 
   /* Garden Landscape & Decoration Badges */
   .garden-deco-item {
@@ -937,6 +1158,165 @@
   </div>
 </div>
 
+<!-- VÒNG QUAY LỄ HỘI MODAL (trò chơi may rủi, cân bằng động, xem hàm getActiveWheelWeights) -->
+<div id="wheel-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">🎡 Vòng Quay Lễ Hội</h3>
+      <button class="btn btn-outline" id="close-wheel-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="wheel-bamboo-balance">0 🎋</strong></span>
+      <span>🎡 Lượt hôm nay: <strong style="color:var(--seal-dark);" id="wheel-spins-left">5/5</strong></span>
+    </div>
+    <div id="wheel-stage" style="position:relative; width:260px; height:260px; margin:0 auto 16px;">
+      <div class="wheel-glow-ring"></div>
+      <div id="wheel-pointer" style="position:absolute; top:-8px; left:50%; font-size:26px; z-index:5; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));">🔻</div>
+      <svg id="wheel-svg" viewBox="0 0 300 300" style="width:100%; height:100%; transform:rotate(0deg);"></svg>
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:46px; height:46px; border-radius:50%; background:var(--card-bg); border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:22px; z-index:4; box-shadow:0 2px 8px rgba(0,0,0,0.2);">🐼</div>
+    </div>
+    <div id="wheel-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <button class="btn btn-primary" id="spin-wheel-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#D4AF37,#F0C75E); border-color:#B8860B; box-shadow:0 3px 0 #B8860B; color:#3A2E00;">🎡 Quay Ngay (10 🎋)</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:10px; line-height:1.5;">
+      📌 Mỗi lượt quay tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Vòng quay tự cân bằng: thua liên tiếp sẽ dễ gỡ hơn, thắng lớn liên tiếp sẽ tạm khó ăn to hơn — không ai lãi/lỗ quá đà nhé! 🎋
+    </div>
+  </div>
+</div>
+
+<!-- CÂU CÁ TRÚC MODAL (trò chơi may rủi, thiên vị nhẹ có lợi cho học sinh, xem hàm getActiveFishWeights) -->
+<div id="fishing-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">🎣 Câu Cá Trúc</h3>
+      <button class="btn btn-outline" id="close-fishing-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="fishing-bamboo-balance">0 🎋</strong></span>
+      <span>🎣 Lượt hôm nay: <strong style="color:var(--seal-dark);" id="fishing-casts-left">5/5</strong></span>
+    </div>
+    <div id="fishing-stage" style="position:relative;">
+      <div id="fishing-pond">
+        <div id="fishing-rod-line" style="height:40px;"></div>
+        <div id="fishing-bobber" style="top:40px;">🎈</div>
+        <div id="fishing-catch-reveal"></div>
+      </div>
+    </div>
+    <div id="fishing-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <button class="btn btn-primary" id="cast-fishing-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#4FA8C9,#2E7DA3); border-color:#1D5A7A; box-shadow:0 3px 0 #1D5A7A; color:#fff;">🎣 Thả Câu (10 🎋)</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:10px; line-height:1.5;">
+      📌 Mỗi lượt thả câu tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Mỗi lần thả câu ra một loài cá ngẫu nhiên, thử vận may của em nhé 🐟
+    </div>
+  </div>
+</div>
+
+<!-- THẢ ĐÈN LỒNG ƯỚC NGUYỆN MODAL (trò chơi may rủi #3, thiết kế trung tính gần hòa vốn, xem hàm getActiveLanternWeights) -->
+<div id="lantern-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">🏮 Thả Đèn Lồng Ước Nguyện</h3>
+      <button class="btn btn-outline" id="close-lantern-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="lantern-bamboo-balance">0 🎋</strong></span>
+      <span>🏮 Lượt hôm nay: <strong style="color:var(--seal-dark);" id="lantern-releases-left">5/5</strong></span>
+    </div>
+    <div id="lantern-stage" style="position:relative;">
+      <div id="lantern-sky">
+        <div id="lantern-moon">🌙</div>
+        <div id="lantern-reveal"></div>
+        <div id="lantern-icon">🏮</div>
+      </div>
+    </div>
+    <div id="lantern-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <button class="btn btn-primary" id="release-lantern-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#E85D3D,#F0A85E); border-color:#B8501F; box-shadow:0 3px 0 #B8501F; color:#fff;">🏮 Thả Đèn (10 🎋)</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:10px; line-height:1.5;">
+      📌 Mỗi lượt thả đèn tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Mỗi lần thả đèn sẽ bay cao hay bay thấp ngẫu nhiên, cùng xem vận may nhé 🏮
+    </div>
+  </div>
+</div>
+
+<!-- THẢ DIỀU TRI THỨC MODAL (trò chơi #6, gắn 1 câu hỏi từ vựng trước khi thả — trả lời đúng thì diều được "gió thuận" (tỉ lệ nghiêng có lợi), trả lời sai thì gặp "gió ngược" (tỉ lệ nghiêng bất lợi). Xem hàm getActiveKiteWeights) -->
+<div id="kite-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">🪁 Thả Diều Tri Thức</h3>
+      <button class="btn btn-outline" id="close-kite-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="kite-bamboo-balance">0 🎋</strong></span>
+      <span>🪁 Lượt hôm nay: <strong style="color:var(--seal-dark);" id="kite-releases-left">5/5</strong></span>
+    </div>
+    <div id="kite-stage" style="position:relative;">
+      <div id="kite-sky">
+        <div id="kite-sun">☀️</div>
+        <div id="kite-reveal"></div>
+        <div id="kite-icon">🪁</div>
+      </div>
+    </div>
+    <div id="kite-question-wrap" style="display:none;">
+      <div id="kite-question-card">
+        <div style="font-size:12px; color:var(--ink-soft); font-weight:700; margin-bottom:8px;">🎯 Trả lời đúng để diều được gió thuận, trả lời sai diều sẽ gặp gió ngược!</div>
+        <div class="hanzi" id="kite-q-hanzi"></div>
+        <div class="pinyin" id="kite-q-pinyin"></div>
+        <div id="kite-question-options"></div>
+      </div>
+    </div>
+    <div id="kite-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <button class="btn btn-primary" id="cast-kite-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#42A5D9,#7EC8E3); border-color:#1B6F94; box-shadow:0 3px 0 #1B6F94; color:#fff;">🪁 Thả Diều (10 🎋)</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:10px; line-height:1.5;" id="kite-footer-note">
+      📌 Mỗi lượt thả diều tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Trả lời đúng 1 câu từ vựng trước khi thả — trả lời càng chắc, diều càng dễ bay cao 🪁
+    </div>
+  </div>
+</div>
+
+<!-- BỐC XĂM VẬN MAY MODAL (trò chơi may rủi #4, thiên vị nhẹ có lợi, xem hàm getActiveFortuneWeights) -->
+<div id="fortune-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">☯️ Bốc Xăm Vận May</h3>
+      <button class="btn btn-outline" id="close-fortune-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="fortune-bamboo-balance">0 🎋</strong></span>
+      <span>☯️ Lượt hôm nay: <strong style="color:var(--seal-dark);" id="fortune-draws-left">5/5</strong></span>
+    </div>
+    <div id="fortune-stage" style="position:relative;">
+      <div id="fortune-shrine">
+        <div id="fortune-tube">🎋</div>
+        <div id="fortune-stick"></div>
+      </div>
+    </div>
+    <div id="fortune-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <button class="btn btn-primary" id="draw-fortune-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#8E24AA,#BA68C8); border-color:#5C1B72; box-shadow:0 3px 0 #5C1B72; color:#fff;">☯️ Bốc Xăm (10 🎋)</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:10px; line-height:1.5;">
+      📌 Mỗi lượt bốc xăm tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Mỗi lượt bốc ra một quẻ xăm ngẫu nhiên, cùng xem vận may hôm nay của em ☯️
+    </div>
+  </div>
+</div>
+
+<!-- ĐẬP NIÊU ĐẤT MODAL (trò chơi may rủi #5, biên độ rộng nhưng EV gần 0, xem hàm getActivePotWeights) -->
+<div id="pot-modal">
+  <div class="pass-modal-card" style="max-width:480px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:var(--seal-dark); margin:0;">🏺 Đập Niêu Đất</h3>
+      <button class="btn btn-outline" id="close-pot-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px;">
+      <span>🎒 Túi Trúc: <strong style="color:var(--seal-dark);" id="pot-bamboo-balance">0 🎋</strong></span>
+      <span>🏺 Lượt hôm nay: <strong style="color:var(--seal-dark);" id="pot-smashes-left">5/5</strong></span>
+    </div>
+    <div id="pot-stage" style="position:relative;">
+      <div id="pot-yard">
+        <div id="pot-cluster"></div>
+      </div>
+    </div>
+    <div id="pot-result-banner" style="display:none; font-weight:800; font-size:14px; margin-bottom:12px; padding:10px; border-radius:12px;"></div>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:2px; line-height:1.5;">
+      📌 Chọn 1 niêu để đập, mỗi lượt tốn <strong>10 🎋 Cành Trúc</strong>, tối đa <strong>5 lượt/ngày</strong>. Mỗi niêu chứa một phần thưởng bí mật, đập thử để biết bên trong có gì nhé 🏺
+    </div>
+  </div>
+</div>
+
 <div class="corner-note">🐼 雅趣学堂 · THẦY MARCUS 🎋</div>
 <button id="theme-toggle-btn"><span id="theme-toggle-icon">🌙</span><span id="theme-toggle-label">Trà đạo đêm</span></button>
 
@@ -982,6 +1362,7 @@
 
 <nav class="tabs">
   <button data-view="pandahome" class="active"><span class="tab-icon">🐼</span><span class="tab-label">Vườn Trúc</span></button>
+  <button data-view="minigames"><span class="tab-icon">🎮</span><span class="tab-label">Trò Chơi</span></button>
   <button data-view="flashcard"><span class="tab-icon">🎋</span><span class="tab-label">Thẻ ghi nhớ</span></button>
   <button data-view="quiz"><span class="tab-icon">🧠</span><span class="tab-label">Kiểm tra</span></button>
   <button data-view="pinyintest"><span class="tab-icon">🀄</span><span class="tab-label">KT Pinyin</span></button>
@@ -1061,6 +1442,27 @@
       <!-- Badges Grid -->
       <h3 style="font-family:var(--serif); color:var(--seal-dark); margin-bottom:8px;">🏅 Bộ Sưu Tập Huy Hiệu & Danh Hiệu</h3>
       <div class="badge-grid" id="ph-badge-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ MINIGAMES VIEW ============ -->
+  <section class="view" id="view-minigames">
+    <div style="max-width:760px; margin:0 auto; text-align:center;">
+      <h2 style="font-family:var(--serif); color:var(--seal-dark); margin-bottom:6px;">🎮 Khu Trò Chơi May Rủi</h2>
+      <p style="font-size:13px; color:var(--ink-soft); font-weight:600; margin-bottom:20px;">
+        Dùng 🎋 Cành Trúc đã tích lũy để chơi thử vận may — mỗi trò đều được cân bằng để không ai lãi/lỗ quá nhiều nhé!
+      </p>
+      <div id="minigames-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;"></div>
+
+      <!-- ===== HUY HIỆU "LỤC NGHỆ TOÀN TÀI" — LỘ TRÌNH + TIẾN ĐỘ HÔM NAY ===== -->
+      <div style="margin-top:28px; background:var(--card-bg); border:2px solid var(--gold); border-radius:var(--radius-lg); padding:18px 16px; box-shadow:var(--shadow-md); text-align:left;">
+        <h3 style="font-family:var(--serif); color:var(--seal-dark); font-size:17px; margin:0 0 4px; text-align:center;">🎮 Huy Hiệu Lục Nghệ Toàn Tài</h3>
+        <p style="font-size:12.5px; color:var(--ink-soft); font-weight:600; margin:0 0 14px; text-align:center;">
+          Chơi <strong>đủ cả 6 trò chơi</strong> ở trên trong CÙNG một ngày (mỗi trò chỉ cần chơi 1 lần, không cần đủ 5 lượt) để được tính 1 ngày. Càng nhiều ngày đạt mốc, huy hiệu càng lên cấp cao — đạt <strong>100 ngày</strong> sẽ nhận huy hiệu Huyền Thoại tối đa!
+        </p>
+        <div id="minigames-today-progress" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:16px;"></div>
+        <div id="minigames-badge-roadmap" class="badge-grid" style="margin-top:0;"></div>
+      </div>
     </div>
   </section>
 
@@ -1971,6 +2373,23 @@ const BADGE_GROUPS = [
     ]
   },
   {
+    groupId: "allgames",
+    title: "Lục Nghệ Toàn Tài",
+    icon: "🎮",
+    metricLabel: "ngày chơi đủ cả 6 trò chơi",
+    metric: g => (g.counters && g.counters.allGamesDayCount) || 0,
+    tiers: [
+      { tier: 1, threshold: 1,   xp: 15,  charm: 10,  name: "Lục Nghệ Toàn Tài · Cấp 1" },
+      { tier: 2, threshold: 5,   xp: 30,  charm: 20,  name: "Lục Nghệ Toàn Tài · Cấp 2" },
+      { tier: 3, threshold: 15,  xp: 55,  charm: 35,  name: "Lục Nghệ Toàn Tài · Cấp 3" },
+      { tier: 4, threshold: 30,  xp: 85,  charm: 55,  name: "Lục Nghệ Toàn Tài · Cấp 4 (Bạch Kim)" },
+      { tier: 5, threshold: 50,  xp: 120, charm: 80,  name: "Lục Nghệ Toàn Tài · Cấp 5 (Kim Cương)" },
+      { tier: 6, threshold: 70,  xp: 160, charm: 110, name: "Lục Nghệ Toàn Tài · Cấp 6 (Tử Tinh)" },
+      { tier: 7, threshold: 90,  xp: 210, charm: 150, name: "Lục Nghệ Toàn Tài · Cấp 7 (Hồng Ngọc)" },
+      { tier: 8, threshold: 100, xp: 280, charm: 220, name: "Lục Nghệ Toàn Tài · Cấp 8 (Huyền Thoại)" }
+    ]
+  },
+  {
     groupId: "level",
     title: "Đại Sư Tốt Nghiệp",
     icon: "🎓",
@@ -2405,6 +2824,10 @@ function sanitizeState(s) {
   if (typeof g.counters.timedPassCount !== "number") g.counters.timedPassCount = 0;
   if (typeof g.counters.maxStreak !== "number") g.counters.maxStreak = s.streak || 1;
   if (typeof g.counters.totalBambooEarned !== "number") g.counters.totalBambooEarned = g.bambooPouch;
+  if (typeof g.counters.allGamesDayCount !== "number") g.counters.allGamesDayCount = 0;
+  if (!Array.isArray(g.allGamesDayDates)) g.allGamesDayDates = [];
+  if (!g.dailyMinigames || typeof g.dailyMinigames !== "object") g.dailyMinigames = { date: "", played: [] };
+  if (!Array.isArray(g.dailyMinigames.played)) g.dailyMinigames.played = [];
 
   const todayStr = new Date().toISOString().split("T")[0];
   if (!g.dailySteals || typeof g.dailySteals !== "object") {
@@ -4705,6 +5128,1697 @@ function buyReincarnationElixir() {
   saveState();
   updateGamificationUI();
   playSound("correct");
+}
+
+/* =========================================================
+   VÒNG QUAY LỄ HỘI — TRÒ CHƠI MAY RỦI (dùng Trúc để cược)
+   Nguyên tắc thiết kế:
+   - Kỳ vọng (Expected Value) toàn bảng ≈ 99% số Trúc đặt cược,
+     nên về lâu dài học sinh không lãi/lỗ quá nhiều.
+   - Có sàn "Hoàn Vốn" (x1.0) và không có ô "mất trắng 100%",
+     ô nặng nhất chỉ mất 50% cược.
+   - Cơ chế "pity" 2 chiều: thua liên tục thì dễ gỡ hơn ở lượt
+     sau; thắng lớn liên tục thì tạm khó ăn to hơn ở lượt sau.
+   - Cân bằng động theo netTotal tích lũy của từng học sinh:
+     lỗ nhiều -> tạm khóa các ô mất Trúc; lãi nhiều -> tạm khóa
+     các ô ăn to, giúp mỗi em luôn dao động quanh mức hòa vốn.
+   ========================================================= */
+const WHEEL_SPIN_COST = 10;
+const WHEEL_DAILY_LIMIT = 5;
+
+/* mult: hệ số nhân số Trúc đã cược khi trúng ô này.
+   type "charm"/"xp": ngoài việc hoàn lại 100% cược (mult:1.0),
+   còn cộng thêm phần thưởng phụ không phải Trúc. */
+const WHEEL_SEGMENTS = [
+  { key: "lose_half",  icon: "🥀", label: "Mất Nửa",   mult: 0.5, weight: 15, color: "#E57373" },
+  { key: "lose_small",  icon: "🍂", label: "Hao Hụt",   mult: 0.8, weight: 23, color: "#FFB74D" },
+  { key: "even",        icon: "🎋", label: "Hoàn Vốn",  mult: 1.0, weight: 15, color: "#FFD54F" },
+  { key: "small_win",   icon: "🍀", label: "Lãi Nhẹ",   mult: 1.2, weight: 20, color: "#AED581" },
+  { key: "charm_bonus", icon: "💖", label: "+5 Mị Lực", mult: 1.0, weight: 8,  color: "#F06292", type: "charm", bonus: 5 },
+  { key: "good_win",    icon: "🎐", label: "Lãi Khá",   mult: 1.5, weight: 12, color: "#4DB6AC" },
+  { key: "xp_bonus",    icon: "⭐", label: "+10 XP",    mult: 1.0, weight: 6,  color: "#7986CB", type: "xp", bonus: 10 },
+  { key: "jackpot",     icon: "🎉", label: "JACKPOT!",  mult: 2.5, weight: 1,  color: "#D4AF37" }
+];
+
+function checkResetWheelDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.luckyWheel || typeof g.luckyWheel !== "object") {
+    g.luckyWheel = { date: todayStr, spinsToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.luckyWheel.date !== todayStr) {
+    g.luckyWheel.date = todayStr;
+    g.luckyWheel.spinsToday = 0;
+    /* Giữ nguyên netTotal & lịch sử qua ngày mới để cơ chế cân bằng động
+       vẫn còn ý nghĩa dài hạn, chỉ reset số lượt quay trong ngày. */
+  }
+  if (typeof g.luckyWheel.netTotal !== "number") g.luckyWheel.netTotal = 0;
+  if (!Array.isArray(g.luckyWheel.recentResults)) g.luckyWheel.recentResults = [];
+}
+
+/* Tính trọng số các ô đang "mở" cho lượt quay kế tiếp, dựa trên lịch sử
+   gần đây (pity 2 chiều) + netTotal tích lũy (cân bằng động dài hạn). */
+function getActiveWheelWeights(g) {
+  const w = WHEEL_SEGMENTS.map(s => s.weight);
+  const recent = g.luckyWheel.recentResults || [];
+  const last3 = recent.slice(-3);
+  const last2 = recent.slice(-2);
+  const allLoseLast3 = last3.length === 3 && last3.every(m => m < 1);
+  const bigWinLast2 = last2.length === 2 && last2.every(m => m >= 1.5);
+
+  if (allLoseLast3) {
+    /* Thua 3 lượt liên tiếp -> tạm khóa ô mất nhiều nhất (0.5x) */
+    w[2] += w[0];
+    w[0] = 0;
+  }
+  if (bigWinLast2) {
+    /* Ăn to 2 lượt liên tiếp -> tạm khóa Jackpot */
+    w[2] += w[7];
+    w[7] = 0;
+  }
+
+  const net = g.luckyWheel.netTotal || 0;
+  if (net <= -40) {
+    /* Đang lỗ khá nhiều -> tạm khóa 2 ô mất Trúc, dồn cơ hội gỡ vốn */
+    w[3] += w[0] + w[1];
+    w[0] = 0; w[1] = 0;
+  } else if (net >= 40) {
+    /* Đang lãi khá nhiều -> tạm khóa ô lãi khá + Jackpot để hạ nhiệt */
+    w[1] += w[5] + w[7];
+    w[5] = 0; w[7] = 0;
+  }
+  return w;
+}
+
+function pickWeightedWheelIndex(weights) {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    if (r < weights[i]) return i;
+    r -= weights[i];
+  }
+  return weights.length - 1;
+}
+
+/* Tiếng "tách tách" của vòng quay, nhặt thưa dần theo thời gian để mô
+   phỏng cảm giác vòng quay chậm lại trước khi dừng hẳn. */
+function scheduleWheelTicks(totalDurationMs) {
+  const start = performance.now();
+  function tick() {
+    const elapsed = performance.now() - start;
+    if (elapsed >= totalDurationMs - 150) return;
+    playTone([1046.5], 0.028, "square", 0);
+    const progress = elapsed / totalDurationMs;
+    const gap = 55 + progress * progress * 380;
+    setTimeout(tick, gap);
+  }
+  tick();
+}
+
+function spawnWheelFlash() {
+  const stage = document.getElementById("wheel-stage");
+  if (!stage) return;
+  const flash = document.createElement("div");
+  flash.className = "wheel-flash-ring";
+  stage.appendChild(flash);
+  setTimeout(() => flash.remove(), 800);
+}
+
+function buildWheelSVG() {
+  const svg = document.getElementById("wheel-svg");
+  if (!svg) return;
+  const cx = 150, cy = 150, r = 145;
+  const n = WHEEL_SEGMENTS.length;
+  const sliceAngle = 360 / n;
+  let html = "";
+  WHEEL_SEGMENTS.forEach((seg, i) => {
+    const startDeg = -90 + i * sliceAngle;
+    const endDeg = startDeg + sliceAngle;
+    const startRad = (startDeg * Math.PI) / 180;
+    const endRad = (endDeg * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+    html += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 0,1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${seg.color}" stroke="#fff" stroke-width="2"></path>`;
+    const midDeg = startDeg + sliceAngle / 2;
+    const midRad = (midDeg * Math.PI) / 180;
+    const tx = cx + (r * 0.62) * Math.cos(midRad);
+    const ty = cy + (r * 0.62) * Math.sin(midRad);
+    html += `<text x="${tx.toFixed(2)}" y="${ty.toFixed(2)}" font-size="26" text-anchor="middle" dominant-baseline="central" transform="rotate(${midDeg + 90},${tx.toFixed(2)},${ty.toFixed(2)})">${seg.icon}</text>`;
+  });
+  svg.innerHTML = html;
+}
+
+/* =========================================================
+   CÂU CÁ TRÚC (trò chơi may rủi #2 trong khu Trò Chơi)
+   ---------------------------------------------------------
+   Khác với Vòng Quay (thiết kế hòa vốn ~-0.6% EV), Câu Cá Trúc
+   được CHỦ Ý thiết kế thiên vị nhẹ có lợi cho học sinh: loài cá
+   có trọng số cao nhất (32%) là mức lãi nhẹ (1.05x), và EV tổng
+   ~ +6% mỗi lượt câu — để các em "thường lãi" nhưng không lãi
+   nhiều, tránh bơm quá nhiều Trúc ảo vào hệ thống.
+   Vẫn có cơ chế cân bằng động 2 chiều (giống Vòng Quay) để chặn
+   trường hợp một em câu trúng liên tục cá to/Rương Báu nhiều lần,
+   hoặc ngược lại toàn hụt liên tục dù tỉ lệ đã thiên vị. */
+const FISH_CAST_COST = 10;
+const FISH_DAILY_LIMIT = 5;
+
+/* mult: hệ số nhân số Trúc đã cược khi câu được loài này.
+   type "charm"/"xp": ngoài hoàn lại % cược theo mult, còn cộng
+   thêm phần thưởng phụ không phải Trúc. */
+const FISH_SPECIES = [
+  { key: "empty_hook",   icon: "🥾", label: "Hụt Câu",     mult: 0.7, weight: 12, color: "#90A4AE" },
+  { key: "small_fish",   icon: "🐟", label: "Cá Nhỏ",      mult: 0.9, weight: 23, color: "#64B5F6" },
+  { key: "medium_fish",  icon: "🐠", label: "Cá Vừa",      mult: 1.05, weight: 22, color: "#4DB6AC" },
+  { key: "big_fish",     icon: "🐡", label: "Cá Lớn",      mult: 1.2, weight: 25, color: "#FFB74D" },
+  { key: "golden_fish",  icon: "✨", label: "Cá Vàng",     mult: 1.4, weight: 10, color: "#F06292", type: "charm", bonus: 5 },
+  { key: "rainbow_fish", icon: "🌈", label: "Cá Cầu Vồng", mult: 1.0, weight: 6,  color: "#7986CB", type: "xp", bonus: 8 },
+  { key: "treasure",     icon: "🎁", label: "Rương Báu!",  mult: 2.0, weight: 2,  color: "#D4AF37" }
+];
+
+function checkResetFishingDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.fishing || typeof g.fishing !== "object") {
+    g.fishing = { date: todayStr, castsToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.fishing.date !== todayStr) {
+    g.fishing.date = todayStr;
+    g.fishing.castsToday = 0;
+    /* Giữ nguyên netTotal & lịch sử qua ngày mới để cơ chế cân bằng
+       vẫn có ý nghĩa dài hạn, chỉ reset số lượt câu trong ngày. */
+  }
+  if (typeof g.fishing.netTotal !== "number") g.fishing.netTotal = 0;
+  if (!Array.isArray(g.fishing.recentResults)) g.fishing.recentResults = [];
+}
+
+/* Tính trọng số các loài cá đang "có thể câu được" cho lượt kế tiếp,
+   dựa trên lịch sử gần đây + netTotal tích lũy — chặn 2 chiều để
+   không ai lãi/lỗ quá đà dù tỉ lệ gốc đã thiên vị nhẹ có lợi. */
+function getActiveFishWeights(g) {
+  const w = FISH_SPECIES.map(s => s.weight);
+  const recent = g.fishing.recentResults || [];
+  const last3 = recent.slice(-3);
+  const last2 = recent.slice(-2);
+  const allLoseLast3 = last3.length === 3 && last3.every(m => m < 1);
+  const bigWinLast2 = last2.length === 2 && last2.every(m => m >= 1.4);
+
+  if (allLoseLast3) {
+    /* Hụt/thua 3 lượt liên tiếp -> tạm khóa Hụt Câu, dồn cho Cá Vừa */
+    w[2] += w[0];
+    w[0] = 0;
+  }
+  if (bigWinLast2) {
+    /* Câu trúng cá to 2 lượt liên tiếp -> tạm khóa Rương Báu */
+    w[2] += w[6];
+    w[6] = 0;
+  }
+
+  const net = g.fishing.netTotal || 0;
+  if (net <= -25) {
+    /* Đang lỗ -> tạm khóa 2 loài gây lỗ, dồn cơ hội gỡ vốn về Cá Lớn */
+    w[3] += w[0] + w[1];
+    w[0] = 0; w[1] = 0;
+  } else if (net >= 35) {
+    /* Đang lãi khá nhiều -> tạm khóa Cá Vàng + Rương Báu để hạ nhiệt */
+    w[3] += w[4] + w[6];
+    w[4] = 0; w[6] = 0;
+  }
+  return w;
+}
+
+function openFishingModal() {
+  checkResetFishingDaily();
+  const line = document.getElementById("fishing-rod-line");
+  const bobber = document.getElementById("fishing-bobber");
+  const reveal = document.getElementById("fishing-catch-reveal");
+  if (line) line.style.height = "40px";
+  if (bobber) { bobber.style.top = "40px"; bobber.textContent = "🎈"; bobber.classList.remove("dipping"); }
+  if (reveal) { reveal.classList.remove("pop"); reveal.textContent = ""; }
+  const stage = document.getElementById("fishing-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("fishing-result-banner");
+  if (banner) banner.style.display = "none";
+  const modal = document.getElementById("fishing-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderFishingModal();
+}
+
+function renderFishingModal() {
+  checkResetFishingDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("fishing-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("fishing-casts-left");
+  const castsLeft = Math.max(0, FISH_DAILY_LIMIT - (g.fishing.castsToday || 0));
+  if (leftEl) leftEl.textContent = `${castsLeft}/${FISH_DAILY_LIMIT}`;
+
+  const castBtn = document.getElementById("cast-fishing-btn");
+  if (castBtn) {
+    const canCast = castsLeft > 0 && (g.bambooPouch || 0) >= FISH_CAST_COST;
+    castBtn.disabled = !canCast;
+    castBtn.style.opacity = canCast ? "1" : "0.55";
+    if (castsLeft <= 0) {
+      castBtn.textContent = "🎣 Hết lượt câu hôm nay";
+    } else if ((g.bambooPouch || 0) < FISH_CAST_COST) {
+      castBtn.textContent = "🎣 Không đủ Trúc để câu";
+    } else {
+      castBtn.textContent = `🎣 Thả Câu (${FISH_CAST_COST} 🎋)`;
+    }
+  }
+}
+
+function spawnPondRipple() {
+  const pond = document.getElementById("fishing-pond");
+  if (!pond) return;
+  const ripple = document.createElement("div");
+  ripple.className = "pond-ripple";
+  ripple.style.left = "50%";
+  ripple.style.top = "70%";
+  pond.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 1650);
+}
+
+let _fishingCasting = false;
+
+function castFishingLine() {
+  if (_fishingCasting) return;
+  checkResetFishingDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const castsLeft = Math.max(0, FISH_DAILY_LIMIT - (g.fishing.castsToday || 0));
+  if (castsLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${FISH_DAILY_LIMIT} lượt câu hôm nay rồi! Hẹn câu tiếp vào ngày mai nhé 🎣`);
+  }
+  if ((g.bambooPouch || 0) < FISH_CAST_COST) {
+    return alert(`Bạn không đủ Trúc để câu! Cần ${FISH_CAST_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  const weights = getActiveFishWeights(g);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = FISH_SPECIES[targetIndex];
+
+  /* Trừ Trúc cược ngay khi thả câu */
+  g.bambooPouch -= FISH_CAST_COST;
+  g.fishing.castsToday = (g.fishing.castsToday || 0) + 1;
+  trackMinigamePlayed("fishing");
+
+  _fishingCasting = true;
+  const castBtn = document.getElementById("cast-fishing-btn");
+  if (castBtn) castBtn.disabled = true;
+  const banner = document.getElementById("fishing-result-banner");
+  if (banner) banner.style.display = "none";
+  updateGamificationUI();
+  renderFishingModal();
+  playSound("pass");
+
+  const line = document.getElementById("fishing-rod-line");
+  const bobber = document.getElementById("fishing-bobber");
+  const reveal = document.getElementById("fishing-catch-reveal");
+  if (line) line.style.height = "110px";
+  if (bobber) { bobber.style.top = "108px"; bobber.classList.add("dipping"); }
+
+  const WAIT_MS = 1700;
+  setTimeout(() => {
+    spawnPondRipple();
+    if (bobber) bobber.classList.remove("dipping");
+    setTimeout(() => {
+      if (bobber) bobber.style.opacity = "0";
+      if (line) line.style.height = "40px";
+      if (reveal) {
+        reveal.textContent = seg.icon;
+        reveal.classList.remove("pop");
+        void reveal.offsetWidth;
+        reveal.classList.add("pop");
+      }
+      resolveFishingCast(seg);
+      setTimeout(() => { if (bobber) { bobber.style.top = "40px"; bobber.style.opacity = "1"; bobber.textContent = "🎈"; } }, 900);
+    }, 500);
+  }, WAIT_MS);
+}
+
+function resolveFishingCast(seg) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(FISH_CAST_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - FISH_CAST_COST;
+  g.fishing.netTotal = (g.fishing.netTotal || 0) + netChange;
+  g.fishing.recentResults.push(seg.mult);
+  if (g.fishing.recentResults.length > 10) g.fishing.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const banner = document.getElementById("fishing-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.textContent = `${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`🎣 Gấu Trúc của ${state.studentName} vừa câu được "${seg.label}" ${seg.icon} ở Câu Cá Trúc (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("fishing-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  _fishingCasting = false;
+  saveState();
+  updateGamificationUI();
+  renderFishingModal();
+}
+
+/* =========================================================
+   THẢ ĐÈN LỒNG ƯỚC NGUYỆN (trò chơi may rủi #3 trong khu Trò Chơi)
+   ---------------------------------------------------------
+   Thiết kế TRUNG TÍNH, gần hòa vốn (EV ~ -1.2%, còn nhẹ hơn cả
+   Vòng Quay) — kết quả phổ biến nhất (28%) là "Bay Ổn Định" hoàn
+   lại đúng 100% cược. Mục tiêu: một lựa chọn "an toàn" cho học
+   sinh muốn thư giãn mà không lo lãi/lỗ nhiều, khác với Vòng Quay
+   (hơi âm) và Câu Cá Trúc (hơi dương). Vẫn có cân bằng động 2
+   chiều để kiểm soát chặt không ai lệch quá xa mức hòa vốn. */
+const LANTERN_COST = 10;
+const LANTERN_DAILY_LIMIT = 5;
+
+/* mult: hệ số nhân số Trúc đã cược khi đèn dừng ở kết quả này.
+   type "charm"/"xp": ngoài hoàn lại % cược theo mult, còn cộng
+   thêm phần thưởng phụ không phải Trúc. */
+const LANTERN_OUTCOMES = [
+  { key: "blown_out",    icon: "💨", label: "Đèn Tắt Giữa Đường", mult: 0.5, weight: 12, color: "#78909C" },
+  { key: "low_drift",    icon: "🌬️", label: "Bay Thấp",          mult: 0.8, weight: 25, color: "#5C6BC0" },
+  { key: "steady_glow",  icon: "🏮", label: "Bay Ổn Định",        mult: 1.0, weight: 18, color: "#F0A85E" },
+  { key: "high_rise",    icon: "⬆️", label: "Bay Cao",           mult: 1.2, weight: 23, color: "#4DB6AC" },
+  { key: "star_bless",   icon: "⭐", label: "Sao Ban Phước",      mult: 1.0, weight: 10, color: "#F06292", type: "charm", bonus: 5 },
+  { key: "moon_bless",   icon: "🌙", label: "Trăng Ban Phước",    mult: 1.0, weight: 8,  color: "#7986CB", type: "xp", bonus: 10 },
+  { key: "dragon_omen",  icon: "🐉", label: "Điềm Rồng Bay!",     mult: 2.3, weight: 4,  color: "#D4AF37" }
+];
+
+function checkResetLanternDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.lantern || typeof g.lantern !== "object") {
+    g.lantern = { date: todayStr, releasesToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.lantern.date !== todayStr) {
+    g.lantern.date = todayStr;
+    g.lantern.releasesToday = 0;
+    /* Giữ nguyên netTotal & lịch sử qua ngày mới để cơ chế cân bằng
+       vẫn có ý nghĩa dài hạn, chỉ reset số lượt thả trong ngày. */
+  }
+  if (typeof g.lantern.netTotal !== "number") g.lantern.netTotal = 0;
+  if (!Array.isArray(g.lantern.recentResults)) g.lantern.recentResults = [];
+}
+
+/* Tính trọng số các kết quả đang "mở" cho lượt thả kế tiếp — pity
+   ngắn hạn theo lịch sử gần đây + cân bằng dài hạn theo netTotal,
+   giữ trò chơi này luôn dao động rất sát mức hòa vốn. */
+function getActiveLanternWeights(g) {
+  const w = LANTERN_OUTCOMES.map(s => s.weight);
+  const recent = g.lantern.recentResults || [];
+  const last3 = recent.slice(-3);
+  const last2 = recent.slice(-2);
+  const allLoseLast3 = last3.length === 3 && last3.every(m => m < 1);
+  const bigWinLast2 = last2.length === 2 && last2.every(m => m >= 1.2);
+
+  if (allLoseLast3) {
+    /* Tắt/hao hụt 3 lượt liên tiếp -> tạm khóa Đèn Tắt, dồn cho Bay Ổn Định */
+    w[2] += w[0];
+    w[0] = 0;
+  }
+  if (bigWinLast2) {
+    /* Ăn khá 2 lượt liên tiếp -> tạm khóa Điềm Rồng Bay */
+    w[2] += w[6];
+    w[6] = 0;
+  }
+
+  const net = g.lantern.netTotal || 0;
+  if (net <= -25) {
+    /* Đang lỗ -> tạm khóa 2 kết quả gây lỗ, dồn cơ hội gỡ về Bay Cao */
+    w[3] += w[0] + w[1];
+    w[0] = 0; w[1] = 0;
+  } else if (net >= 25) {
+    /* Đang lãi -> tạm khóa Điềm Rồng Bay + 1 phần thưởng phụ để hạ nhiệt sớm hơn Vòng Quay/Câu Cá */
+    w[2] += w[6] + w[5];
+    w[6] = 0; w[5] = 0;
+  }
+  return w;
+}
+
+function spawnLanternStars() {
+  const sky = document.getElementById("lantern-sky");
+  if (!sky) return;
+  sky.querySelectorAll(".lantern-star").forEach(el => el.remove());
+  for (let i = 0; i < 18; i++) {
+    const star = document.createElement("div");
+    star.className = "lantern-star";
+    const size = 1 + Math.random() * 2;
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+    star.style.left = `${Math.random() * 96}%`;
+    star.style.top = `${Math.random() * 65}%`;
+    star.style.animationDelay = `${(Math.random() * 2).toFixed(2)}s`;
+    sky.appendChild(star);
+  }
+}
+
+function openLanternModal() {
+  checkResetLanternDaily();
+  spawnLanternStars();
+  const icon = document.getElementById("lantern-icon");
+  const reveal = document.getElementById("lantern-reveal");
+  if (icon) { icon.style.transition = "none"; icon.style.bottom = "14px"; icon.style.opacity = "1"; icon.classList.remove("rising"); void icon.offsetWidth; icon.style.transition = ""; }
+  if (reveal) { reveal.classList.remove("pop"); reveal.textContent = ""; }
+  const stage = document.getElementById("lantern-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("lantern-result-banner");
+  if (banner) banner.style.display = "none";
+  const modal = document.getElementById("lantern-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderLanternModal();
+}
+
+function renderLanternModal() {
+  checkResetLanternDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("lantern-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("lantern-releases-left");
+  const releasesLeft = Math.max(0, LANTERN_DAILY_LIMIT - (g.lantern.releasesToday || 0));
+  if (leftEl) leftEl.textContent = `${releasesLeft}/${LANTERN_DAILY_LIMIT}`;
+
+  const releaseBtn = document.getElementById("release-lantern-btn");
+  if (releaseBtn) {
+    const canRelease = releasesLeft > 0 && (g.bambooPouch || 0) >= LANTERN_COST;
+    releaseBtn.disabled = !canRelease;
+    releaseBtn.style.opacity = canRelease ? "1" : "0.55";
+    if (releasesLeft <= 0) {
+      releaseBtn.textContent = "🏮 Hết lượt thả hôm nay";
+    } else if ((g.bambooPouch || 0) < LANTERN_COST) {
+      releaseBtn.textContent = "🏮 Không đủ Trúc để thả";
+    } else {
+      releaseBtn.textContent = `🏮 Thả Đèn (${LANTERN_COST} 🎋)`;
+    }
+  }
+}
+
+let _lanternReleasing = false;
+
+function releaseLantern() {
+  if (_lanternReleasing) return;
+  checkResetLanternDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const releasesLeft = Math.max(0, LANTERN_DAILY_LIMIT - (g.lantern.releasesToday || 0));
+  if (releasesLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${LANTERN_DAILY_LIMIT} lượt thả đèn hôm nay rồi! Hẹn thả tiếp vào ngày mai nhé 🏮`);
+  }
+  if ((g.bambooPouch || 0) < LANTERN_COST) {
+    return alert(`Bạn không đủ Trúc để thả đèn! Cần ${LANTERN_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  const weights = getActiveLanternWeights(g);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = LANTERN_OUTCOMES[targetIndex];
+
+  /* Trừ Trúc cược ngay khi thả đèn */
+  g.bambooPouch -= LANTERN_COST;
+  g.lantern.releasesToday = (g.lantern.releasesToday || 0) + 1;
+  trackMinigamePlayed("lantern");
+
+  _lanternReleasing = true;
+  const releaseBtn = document.getElementById("release-lantern-btn");
+  if (releaseBtn) releaseBtn.disabled = true;
+  const banner = document.getElementById("lantern-result-banner");
+  if (banner) banner.style.display = "none";
+  updateGamificationUI();
+  renderLanternModal();
+  playSound("pass");
+
+  const icon = document.getElementById("lantern-icon");
+  const reveal = document.getElementById("lantern-reveal");
+  const isBlownOut = seg.key === "blown_out";
+  if (icon) {
+    icon.classList.add("rising");
+    icon.style.bottom = isBlownOut ? "90px" : "185px";
+    icon.style.opacity = isBlownOut ? "0" : "1";
+  }
+
+  const RISE_MS = 2300;
+  setTimeout(() => {
+    if (reveal) {
+      reveal.textContent = seg.icon;
+      reveal.classList.remove("pop");
+      void reveal.offsetWidth;
+      reveal.classList.add("pop");
+    }
+    if (icon) icon.style.opacity = "0";
+    resolveLanternRelease(seg);
+    setTimeout(() => {
+      if (icon) { icon.style.transition = "none"; icon.style.bottom = "14px"; icon.style.opacity = "1"; icon.classList.remove("rising"); void icon.offsetWidth; icon.style.transition = ""; }
+    }, 900);
+  }, RISE_MS);
+}
+
+function resolveLanternRelease(seg) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(LANTERN_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - LANTERN_COST;
+  g.lantern.netTotal = (g.lantern.netTotal || 0) + netChange;
+  g.lantern.recentResults.push(seg.mult);
+  if (g.lantern.recentResults.length > 10) g.lantern.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const banner = document.getElementById("lantern-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.textContent = `${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`🏮 Gấu Trúc của ${state.studentName} vừa thả Đèn Lồng Ước Nguyện, kết quả "${seg.label}" ${seg.icon} (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("lantern-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  _lanternReleasing = false;
+  saveState();
+  updateGamificationUI();
+  renderLanternModal();
+}
+
+/* =========================================================
+   THẢ DIỀU TRI THỨC (trò chơi #6 trong khu Trò Chơi)
+   ---------------------------------------------------------
+   Khác hẳn 5 trò còn lại: đây KHÔNG phải thuần may rủi. Trước khi
+   thả diều, học sinh phải trả lời 1 câu trắc nghiệm từ vựng (4 đáp
+   án, lấy ngẫu nhiên từ đúng list/chủ đề đang học). Câu trả lời
+   quyết định "hướng gió":
+     - Trả lời ĐÚNG  -> dồn trọng số sang các kết quả bay cao (EV ~+16%)
+     - Trả lời SAI   -> dồn trọng số sang các kết quả bay thấp/rơi (EV ~-14%)
+   Bảng gốc (chưa cộng/trừ theo câu trả lời) cân bằng gần mức hoà vốn
+   (EV ~100.6%), y hệt tinh thần "trung tính" của 4 trò kia — điểm
+   khác biệt duy nhất là AI HỌC BÀI KỸ sẽ có lợi thế thật sự, không
+   chỉ dựa vào may mắn thuần túy. Vẫn giữ 1 lớp cân bằng dài hạn theo
+   netTotal để không ai bị lệch quá xa dù đúng/sai liên tục (giống
+   cơ chế pity của Thả Đèn Lồng/Vòng Quay). */
+const KITE_COST = 10;
+const KITE_DAILY_LIMIT = 5;
+
+/* mult: hệ số nhân số Trúc đã cược khi diều dừng ở kết quả này.
+   type "charm"/"xp": ngoài hoàn lại % cược theo mult, còn cộng
+   thêm phần thưởng phụ không phải Trúc. */
+const KITE_OUTCOMES = [
+  { key: "kite_crash",    icon: "💥", label: "Diều Rơi",           mult: 0.4,  weight: 10, color: "#78909C" },
+  { key: "weak_wind",     icon: "🍃", label: "Gió Yếu",            mult: 0.75, weight: 20, color: "#90A4AE" },
+  { key: "steady_flight", icon: "🪁", label: "Bay Ổn Định",        mult: 1.0,  weight: 30, color: "#5C6BC0" },
+  { key: "strong_wind",   icon: "💨", label: "Gió Mạnh",           mult: 1.3,  weight: 20, color: "#4DB6AC" },
+  { key: "star_wisdom",   icon: "⭐", label: "Sao Trí Tuệ",        mult: 1.0,  weight: 9,  color: "#F06292", type: "charm", bonus: 5 },
+  { key: "moon_wisdom",   icon: "🌙", label: "Trăng Tri Thức",     mult: 1.0,  weight: 7,  color: "#7986CB", type: "xp", bonus: 10 },
+  { key: "sky_dragon",    icon: "🐉", label: "Diều Rồng Vút Trời!", mult: 2.4, weight: 4,  color: "#D4AF37" }
+];
+
+function checkResetKiteDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.kite || typeof g.kite !== "object") {
+    g.kite = { date: todayStr, releasesToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.kite.date !== todayStr) {
+    g.kite.date = todayStr;
+    g.kite.releasesToday = 0;
+  }
+  if (typeof g.kite.netTotal !== "number") g.kite.netTotal = 0;
+  if (!Array.isArray(g.kite.recentResults)) g.kite.recentResults = [];
+}
+
+/* Tính trọng số kết quả cho lượt thả kế tiếp: xuất phát từ bảng gốc,
+   cộng/trừ theo câu trả lời đúng/sai, rồi áp thêm 1 lớp cân bằng dài
+   hạn theo netTotal để không ai lệch quá xa dù đúng/sai liên tục. */
+function getActiveKiteWeights(g, isCorrect) {
+  const w = KITE_OUTCOMES.map(s => s.weight);
+  if (isCorrect) {
+    /* Đúng -> gió thuận: bớt 2 ô thấp, cộng thêm cho Gió Mạnh + Diều Rồng */
+    w[0] -= 6; w[1] -= 9; w[3] += 10; w[6] += 5;
+  } else {
+    /* Sai -> gió ngược: bớt Gió Mạnh + Diều Rồng, dồn về 2 ô thấp */
+    w[0] += 6; w[1] += 9; w[3] -= 11; w[6] -= 4;
+  }
+  for (let i = 0; i < w.length; i++) if (w[i] < 0) w[i] = 0;
+
+  const net = g.kite.netTotal || 0;
+  if (net <= -30) {
+    /* Đang lỗ nặng (thường do sai nhiều lượt) -> mở thêm cơ hội gỡ ở Gió Mạnh */
+    w[3] += w[0]; w[0] = 0;
+  } else if (net >= 30) {
+    /* Đang lãi nhiều -> tạm khóa Diều Rồng để hạ nhiệt, dồn về Bay Ổn Định */
+    w[2] += w[6]; w[6] = 0;
+  }
+  return w;
+}
+
+function openKiteModal() {
+  checkResetKiteDaily();
+  const icon = document.getElementById("kite-icon");
+  const reveal = document.getElementById("kite-reveal");
+  if (icon) { icon.style.transition = "none"; icon.style.bottom = "14px"; icon.style.opacity = "1"; icon.classList.remove("rising"); void icon.offsetWidth; icon.style.transition = ""; }
+  if (reveal) { reveal.classList.remove("pop"); reveal.textContent = ""; }
+  const stage = document.getElementById("kite-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("kite-result-banner");
+  if (banner) banner.style.display = "none";
+  const qWrap = document.getElementById("kite-question-wrap");
+  if (qWrap) qWrap.style.display = "none";
+  const modal = document.getElementById("kite-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderKiteModal();
+}
+
+function renderKiteModal() {
+  checkResetKiteDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("kite-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("kite-releases-left");
+  const releasesLeft = Math.max(0, KITE_DAILY_LIMIT - (g.kite.releasesToday || 0));
+  if (leftEl) leftEl.textContent = `${releasesLeft}/${KITE_DAILY_LIMIT}`;
+
+  const castBtn = document.getElementById("cast-kite-btn");
+  if (!castBtn) return;
+  const words = allWords();
+  const notEnoughWords = words.length < 4;
+  const canCast = releasesLeft > 0 && (g.bambooPouch || 0) >= KITE_COST && !notEnoughWords;
+  castBtn.disabled = !canCast;
+  castBtn.style.opacity = canCast ? "1" : "0.55";
+  if (notEnoughWords) {
+    castBtn.textContent = "🪁 Cần thêm từ vựng trong list này";
+  } else if (releasesLeft <= 0) {
+    castBtn.textContent = "🪁 Hết lượt thả hôm nay";
+  } else if ((g.bambooPouch || 0) < KITE_COST) {
+    castBtn.textContent = "🪁 Không đủ Trúc để thả";
+  } else {
+    castBtn.textContent = `🪁 Thả Diều (${KITE_COST} 🎋)`;
+  }
+}
+
+let _kiteCasting = false;
+let _kiteQuestionWord = null;
+
+function castKiteLine() {
+  if (_kiteCasting) return;
+  checkResetKiteDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const releasesLeft = Math.max(0, KITE_DAILY_LIMIT - (g.kite.releasesToday || 0));
+  if (releasesLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${KITE_DAILY_LIMIT} lượt thả diều hôm nay rồi! Hẹn thả tiếp vào ngày mai nhé 🪁`);
+  }
+  if ((g.bambooPouch || 0) < KITE_COST) {
+    return alert(`Bạn không đủ Trúc để thả diều! Cần ${KITE_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+  const words = allWords();
+  if (words.length < 4) {
+    return alert("List từ vựng hiện tại chưa đủ 4 từ để ra câu hỏi! Hãy học thêm từ mới hoặc đổi chủ đề nhé 🪁");
+  }
+
+  /* Trừ Trúc cược ngay khi thả (giống 4 trò kia), rồi mới ra câu hỏi */
+  g.bambooPouch -= KITE_COST;
+  g.kite.releasesToday = (g.kite.releasesToday || 0) + 1;
+  trackMinigamePlayed("kite");
+  updateGamificationUI();
+  renderKiteModal();
+
+  const w = shuffle(words);
+  const target = w[0];
+  const distractors = w.slice(1, 4);
+  const options = shuffle([target, ...distractors]);
+  _kiteQuestionWord = target;
+
+  const castBtn = document.getElementById("cast-kite-btn");
+  if (castBtn) castBtn.style.display = "none";
+  const banner = document.getElementById("kite-result-banner");
+  if (banner) banner.style.display = "none";
+
+  document.getElementById("kite-q-hanzi").textContent = target.hanzi;
+  document.getElementById("kite-q-pinyin").textContent = target.pinyin;
+  const optWrap = document.getElementById("kite-question-options");
+  optWrap.innerHTML = "";
+  options.forEach(opt => {
+    const b = document.createElement("button");
+    b.className = "option-btn";
+    b.textContent = opt.meaning;
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#kite-question-options .option-btn").forEach(x => x.disabled = true);
+      const isCorrect = opt.id === target.id;
+      if (isCorrect) {
+        b.classList.add("correct");
+        playSound("correct");
+      } else {
+        b.classList.add("wrong");
+        const correctBtn = Array.from(optWrap.children).find(x => x.textContent === target.meaning);
+        if (correctBtn) correctBtn.classList.add("correct");
+        playSound("wrong");
+      }
+      setTimeout(() => {
+        const qWrap = document.getElementById("kite-question-wrap");
+        if (qWrap) qWrap.style.display = "none";
+        launchKite(isCorrect);
+      }, 900);
+    });
+    optWrap.appendChild(b);
+  });
+  const qWrap = document.getElementById("kite-question-wrap");
+  if (qWrap) qWrap.style.display = "block";
+}
+
+function launchKite(isCorrect) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const weights = getActiveKiteWeights(g, isCorrect);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = KITE_OUTCOMES[targetIndex];
+
+  _kiteCasting = true;
+  playSound("pass");
+
+  const icon = document.getElementById("kite-icon");
+  const reveal = document.getElementById("kite-reveal");
+  const isCrash = seg.key === "kite_crash";
+  if (icon) {
+    icon.classList.add("rising");
+    icon.style.bottom = isCrash ? "90px" : "185px";
+    icon.style.opacity = isCrash ? "0" : "1";
+  }
+
+  const RISE_MS = 2300;
+  setTimeout(() => {
+    if (reveal) {
+      reveal.textContent = seg.icon;
+      reveal.classList.remove("pop");
+      void reveal.offsetWidth;
+      reveal.classList.add("pop");
+    }
+    if (icon) icon.style.opacity = "0";
+    resolveKiteLaunch(seg, isCorrect);
+    setTimeout(() => {
+      if (icon) { icon.style.transition = "none"; icon.style.bottom = "14px"; icon.style.opacity = "1"; icon.classList.remove("rising"); void icon.offsetWidth; icon.style.transition = ""; }
+    }, 900);
+  }, RISE_MS);
+}
+
+function resolveKiteLaunch(seg, isCorrect) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(KITE_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - KITE_COST;
+  g.kite.netTotal = (g.kite.netTotal || 0) + netChange;
+  g.kite.recentResults.push(seg.mult);
+  if (g.kite.recentResults.length > 10) g.kite.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const answerNote = isCorrect ? "✅ Trả lời đúng nên diều được gió thuận!" : "❌ Trả lời sai nên diều gặp gió ngược!";
+  const banner = document.getElementById("kite-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.innerHTML = `${answerNote}<br>${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`🪁 Gấu Trúc của ${state.studentName} vừa thả Diều Tri Thức (${isCorrect ? "trả lời đúng" : "trả lời sai"} từ "${_kiteQuestionWord?.hanzi || ""}"), kết quả "${seg.label}" ${seg.icon} (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("kite-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  const castBtn = document.getElementById("cast-kite-btn");
+  if (castBtn) castBtn.style.display = "";
+  _kiteCasting = false;
+  saveState();
+  updateGamificationUI();
+  renderKiteModal();
+}
+
+/* =========================================================
+   BỐC XĂM VẬN MAY (trò chơi may rủi #4 trong khu Trò Chơi)
+   ---------------------------------------------------------
+   Thiết kế thiên vị nhẹ có lợi, EV ~ +1.6% mỗi lượt bốc — nhẹ hơn
+   Câu Cá Trúc (+6%) nhưng vẫn dương, tạo cảm giác "hên xui may
+   mắn" đúng chất xăm cổ trang. Kết quả phổ biến nhất (30%) là
+   "Bình" — hoàn vốn 100%. Vẫn có cân bằng động 2 chiều riêng
+   (state.gamification.fortune) để không ai lãi/lỗ quá đà. */
+const FORTUNE_COST = 10;
+const FORTUNE_DAILY_LIMIT = 5;
+
+/* mult: hệ số nhân số Trúc đã cược khi bốc được lá xăm này.
+   type "charm"/"xp": ngoài hoàn lại % cược theo mult, còn cộng
+   thêm phần thưởng phụ không phải Trúc. */
+const FORTUNE_SLIPS = [
+  { key: "dai_hung",   icon: "💀", label: "Đại Hung",        mult: 0.5,  weight: 10, color: "#616161" },
+  { key: "hung",       icon: "⚠️", label: "Hung",            mult: 0.8,  weight: 24, color: "#EF9A9A" },
+  { key: "binh",       icon: "🎋", label: "Bình",            mult: 1.0,  weight: 16, color: "#FFD54F" },
+  { key: "cat",        icon: "🍀", label: "Cát",             mult: 1.15, weight: 28, color: "#AED581" },
+  { key: "dai_cat",    icon: "🌸", label: "Đại Cát",         mult: 1.3,  weight: 12, color: "#F06292", type: "charm", bonus: 5 },
+  { key: "thuong_cat", icon: "🌟", label: "Thượng Cát",      mult: 1.0,  weight: 7,  color: "#7986CB", type: "xp", bonus: 10 },
+  { key: "dai_loi",    icon: "🐲", label: "Đại Cát Đại Lợi!", mult: 2.2, weight: 3,  color: "#D4AF37" }
+];
+
+function checkResetFortuneDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.fortune || typeof g.fortune !== "object") {
+    g.fortune = { date: todayStr, drawsToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.fortune.date !== todayStr) {
+    g.fortune.date = todayStr;
+    g.fortune.drawsToday = 0;
+    /* Giữ nguyên netTotal & lịch sử qua ngày mới để cơ chế cân bằng
+       vẫn có ý nghĩa dài hạn, chỉ reset số lượt bốc trong ngày. */
+  }
+  if (typeof g.fortune.netTotal !== "number") g.fortune.netTotal = 0;
+  if (!Array.isArray(g.fortune.recentResults)) g.fortune.recentResults = [];
+}
+
+/* Trọng số các lá xăm đang "mở" cho lượt bốc kế tiếp — pity ngắn
+   hạn theo lịch sử gần đây + cân bằng dài hạn theo netTotal. */
+function getActiveFortuneWeights(g) {
+  const w = FORTUNE_SLIPS.map(s => s.weight);
+  const recent = g.fortune.recentResults || [];
+  const last3 = recent.slice(-3);
+  const last2 = recent.slice(-2);
+  const allLoseLast3 = last3.length === 3 && last3.every(m => m < 1);
+  const bigWinLast2 = last2.length === 2 && last2.every(m => m >= 1.3);
+
+  if (allLoseLast3) {
+    /* Xăm xấu 3 lượt liên tiếp -> tạm khóa Đại Hung, dồn cho Bình */
+    w[2] += w[0];
+    w[0] = 0;
+  }
+  if (bigWinLast2) {
+    /* Xăm tốt 2 lượt liên tiếp -> tạm khóa Đại Cát Đại Lợi */
+    w[2] += w[6];
+    w[6] = 0;
+  }
+
+  const net = g.fortune.netTotal || 0;
+  if (net <= -25) {
+    /* Đang lỗ -> tạm khóa 2 lá xấu, dồn cơ hội gỡ vốn về Cát */
+    w[3] += w[0] + w[1];
+    w[0] = 0; w[1] = 0;
+  } else if (net >= 35) {
+    /* Đang lãi khá nhiều -> tạm khóa Đại Cát + Đại Cát Đại Lợi để hạ nhiệt */
+    w[3] += w[4] + w[6];
+    w[4] = 0; w[6] = 0;
+  }
+  return w;
+}
+
+function openFortuneModal() {
+  checkResetFortuneDaily();
+  const tube = document.getElementById("fortune-tube");
+  const stick = document.getElementById("fortune-stick");
+  if (tube) tube.classList.remove("shaking");
+  if (stick) { stick.classList.remove("pop"); stick.style.opacity = "0"; stick.innerHTML = ""; }
+  const stage = document.getElementById("fortune-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("fortune-result-banner");
+  if (banner) banner.style.display = "none";
+  const modal = document.getElementById("fortune-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderFortuneModal();
+}
+
+function renderFortuneModal() {
+  checkResetFortuneDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("fortune-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("fortune-draws-left");
+  const drawsLeft = Math.max(0, FORTUNE_DAILY_LIMIT - (g.fortune.drawsToday || 0));
+  if (leftEl) leftEl.textContent = `${drawsLeft}/${FORTUNE_DAILY_LIMIT}`;
+
+  const drawBtn = document.getElementById("draw-fortune-btn");
+  if (drawBtn) {
+    const canDraw = drawsLeft > 0 && (g.bambooPouch || 0) >= FORTUNE_COST;
+    drawBtn.disabled = !canDraw;
+    drawBtn.style.opacity = canDraw ? "1" : "0.55";
+    if (drawsLeft <= 0) {
+      drawBtn.textContent = "☯️ Hết lượt bốc hôm nay";
+    } else if ((g.bambooPouch || 0) < FORTUNE_COST) {
+      drawBtn.textContent = "☯️ Không đủ Trúc để bốc";
+    } else {
+      drawBtn.textContent = `☯️ Bốc Xăm (${FORTUNE_COST} 🎋)`;
+    }
+  }
+}
+
+let _fortuneDrawing = false;
+
+function drawFortuneSlip() {
+  if (_fortuneDrawing) return;
+  checkResetFortuneDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const drawsLeft = Math.max(0, FORTUNE_DAILY_LIMIT - (g.fortune.drawsToday || 0));
+  if (drawsLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${FORTUNE_DAILY_LIMIT} lượt bốc xăm hôm nay rồi! Hẹn bốc tiếp vào ngày mai nhé ☯️`);
+  }
+  if ((g.bambooPouch || 0) < FORTUNE_COST) {
+    return alert(`Bạn không đủ Trúc để bốc xăm! Cần ${FORTUNE_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  const weights = getActiveFortuneWeights(g);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = FORTUNE_SLIPS[targetIndex];
+
+  /* Trừ Trúc cược ngay khi bốc xăm */
+  g.bambooPouch -= FORTUNE_COST;
+  g.fortune.drawsToday = (g.fortune.drawsToday || 0) + 1;
+  trackMinigamePlayed("fortune");
+
+  _fortuneDrawing = true;
+  const drawBtn = document.getElementById("draw-fortune-btn");
+  if (drawBtn) drawBtn.disabled = true;
+  const banner = document.getElementById("fortune-result-banner");
+  if (banner) banner.style.display = "none";
+  updateGamificationUI();
+  renderFortuneModal();
+  playSound("pass");
+
+  const tube = document.getElementById("fortune-tube");
+  const stick = document.getElementById("fortune-stick");
+  if (tube) tube.classList.add("shaking");
+  if (stick) { stick.classList.remove("pop"); stick.style.opacity = "0"; }
+
+  const SHAKE_MS = 1500;
+  setTimeout(() => {
+    if (tube) tube.classList.remove("shaking");
+    if (stick) {
+      stick.style.opacity = "1";
+      stick.innerHTML = `<div style="font-size:26px; margin-bottom:2px;">${seg.icon}</div>${seg.label}`;
+      stick.classList.remove("pop");
+      void stick.offsetWidth;
+      stick.classList.add("pop");
+    }
+    resolveFortuneDraw(seg);
+  }, SHAKE_MS);
+}
+
+function resolveFortuneDraw(seg) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(FORTUNE_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - FORTUNE_COST;
+  g.fortune.netTotal = (g.fortune.netTotal || 0) + netChange;
+  g.fortune.recentResults.push(seg.mult);
+  if (g.fortune.recentResults.length > 10) g.fortune.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const banner = document.getElementById("fortune-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.textContent = `${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`☯️ Gấu Trúc của ${state.studentName} vừa bốc xăm trúng "${seg.label}" ${seg.icon} ở Bốc Xăm Vận May (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("fortune-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  _fortuneDrawing = false;
+  saveState();
+  updateGamificationUI();
+  renderFortuneModal();
+}
+
+/* =========================================================
+   ĐẬP NIÊU ĐẤT (trò chơi may rủi #5 trong khu Trò Chơi)
+   ---------------------------------------------------------
+   Thiết kế biên độ RỘNG hơn 4 trò trước (có cả niêu vỡ tay không
+   0.2x lẫn niêu rồng vàng 3.0x) để tạo cảm giác kịch tính "đập
+   niêu hên xui", nhưng EV được kiểm soát về GẦN 0 (~-0.1%) để bù
+   lại rủi ro cao hơn — không thiên vị hẳn về phía nào. Học sinh
+   chọn 1 trong 6 niêu hiển thị để đập, nhưng phần thưởng vẫn do
+   trọng số ngẫu nhiên quyết định (không niêu nào định trước tốt/
+   xấu) — chọn niêu chỉ để tạo cảm giác tham gia. Vẫn có cân bằng
+   động 2 chiều riêng (state.gamification.potSmash). */
+const POT_COST = 10;
+const POT_DAILY_LIMIT = 5;
+const POT_COUNT = 6;
+
+/* mult: hệ số nhân số Trúc đã cược khi đập trúng niêu loại này.
+   type "charm"/"xp": ngoài hoàn lại % cược theo mult, còn cộng
+   thêm phần thưởng phụ không phải Trúc. */
+const POT_REWARDS = [
+  { key: "empty_pot",   icon: "🕳️", label: "Niêu Rỗng",         mult: 0.2,  weight: 3,  color: "#616161" },
+  { key: "broken_pot",  icon: "💔", label: "Niêu Vỡ Tay Không",  mult: 0.4,  weight: 12, color: "#90A4AE" },
+  { key: "small_coins", icon: "🪙", label: "Niêu Ít Của",        mult: 0.7,  weight: 25, color: "#64B5F6" },
+  { key: "medium_pot",  icon: "🏺", label: "Niêu Vừa",           mult: 1.0,  weight: 15, color: "#FFD54F" },
+  { key: "full_pot",    icon: "💰", label: "Niêu Đầy",           mult: 1.25, weight: 24, color: "#AED581" },
+  { key: "gold_pot",    icon: "✨", label: "Niêu Vàng",          mult: 1.5,  weight: 10, color: "#F06292", type: "charm", bonus: 5 },
+  { key: "jade_pot",    icon: "💎", label: "Niêu Ngọc",          mult: 1.0,  weight: 8,  color: "#7986CB", type: "xp", bonus: 10 },
+  { key: "dragon_pot",  icon: "🐲", label: "Niêu Rồng Vàng!",    mult: 3.0,  weight: 3,  color: "#D4AF37" }
+];
+
+function checkResetPotDaily() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.potSmash || typeof g.potSmash !== "object") {
+    g.potSmash = { date: todayStr, smashesToday: 0, netTotal: 0, recentResults: [] };
+  } else if (g.potSmash.date !== todayStr) {
+    g.potSmash.date = todayStr;
+    g.potSmash.smashesToday = 0;
+    /* Giữ nguyên netTotal & lịch sử qua ngày mới để cơ chế cân bằng
+       vẫn có ý nghĩa dài hạn, chỉ reset số lượt đập trong ngày. */
+  }
+  if (typeof g.potSmash.netTotal !== "number") g.potSmash.netTotal = 0;
+  if (!Array.isArray(g.potSmash.recentResults)) g.potSmash.recentResults = [];
+}
+
+/* Trọng số các loại niêu đang "mở" cho lượt đập kế tiếp — pity
+   ngắn hạn theo lịch sử gần đây + cân bằng dài hạn theo netTotal.
+   Do biên độ trò này rộng hơn, ngưỡng can thiệp cũng nhạy hơn. */
+function getActivePotWeights(g) {
+  const w = POT_REWARDS.map(s => s.weight);
+  const recent = g.potSmash.recentResults || [];
+  const last3 = recent.slice(-3);
+  const last2 = recent.slice(-2);
+  const allLoseLast3 = last3.length === 3 && last3.every(m => m < 1);
+  const bigWinLast2 = last2.length === 2 && last2.every(m => m >= 1.5);
+
+  if (allLoseLast3) {
+    /* Đập hụt 3 lượt liên tiếp -> tạm khóa Niêu Rỗng (mất nặng nhất) */
+    w[3] += w[0];
+    w[0] = 0;
+  }
+  if (bigWinLast2) {
+    /* Ăn to 2 lượt liên tiếp -> tạm khóa Niêu Rồng Vàng */
+    w[3] += w[7];
+    w[7] = 0;
+  }
+
+  const net = g.potSmash.netTotal || 0;
+  if (net <= -30) {
+    /* Đang lỗ khá nhiều -> tạm khóa 2 niêu mất nặng nhất, dồn cơ hội gỡ về Niêu Đầy */
+    w[4] += w[0] + w[1];
+    w[0] = 0; w[1] = 0;
+  } else if (net >= 35) {
+    /* Đang lãi khá nhiều -> tạm khóa 2 niêu ăn to nhất để hạ nhiệt */
+    w[3] += w[5] + w[7];
+    w[5] = 0; w[7] = 0;
+  }
+  return w;
+}
+
+function renderPotCluster() {
+  const cluster = document.getElementById("pot-cluster");
+  if (!cluster) return;
+  cluster.innerHTML = "";
+  for (let i = 0; i < POT_COUNT; i++) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pot-item";
+    btn.textContent = "🏺";
+    btn.dataset.potIndex = String(i);
+    btn.addEventListener("click", () => smashPot(btn));
+    cluster.appendChild(btn);
+  }
+}
+
+function openPotModal() {
+  checkResetPotDaily();
+  renderPotCluster();
+  const stage = document.getElementById("pot-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("pot-result-banner");
+  if (banner) banner.style.display = "none";
+  const modal = document.getElementById("pot-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderPotModal();
+}
+
+function renderPotModal() {
+  checkResetPotDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("pot-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("pot-smashes-left");
+  const smashesLeft = Math.max(0, POT_DAILY_LIMIT - (g.potSmash.smashesToday || 0));
+  if (leftEl) leftEl.textContent = `${smashesLeft}/${POT_DAILY_LIMIT}`;
+
+  const canSmash = smashesLeft > 0 && (g.bambooPouch || 0) >= POT_COST;
+  document.querySelectorAll(".pot-item").forEach(btn => {
+    btn.disabled = !canSmash;
+  });
+  const banner = document.getElementById("pot-result-banner");
+  if (!canSmash && banner && banner.style.display === "none") {
+    if (smashesLeft <= 0) {
+      banner.textContent = "🏺 Bạn đã hết lượt đập niêu hôm nay rồi! Hẹn quay lại vào ngày mai nhé 🏺";
+      banner.style.background = "#FFF8E1"; banner.style.color = "#8D6E00"; banner.style.border = "2px solid #FFE082";
+      banner.style.display = "block";
+    } else if ((g.bambooPouch || 0) < POT_COST) {
+      banner.textContent = `🏺 Không đủ Trúc để đập niêu! Cần ${POT_COST} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`;
+      banner.style.background = "#FFEBEE"; banner.style.color = "#B71C1C"; banner.style.border = "2px solid #EF9A9A";
+      banner.style.display = "block";
+    }
+  }
+}
+
+let _potSmashing = false;
+
+function smashPot(potBtn) {
+  if (_potSmashing) return;
+  checkResetPotDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const smashesLeft = Math.max(0, POT_DAILY_LIMIT - (g.potSmash.smashesToday || 0));
+  if (smashesLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${POT_DAILY_LIMIT} lượt đập niêu hôm nay rồi! Hẹn đập tiếp vào ngày mai nhé 🏺`);
+  }
+  if ((g.bambooPouch || 0) < POT_COST) {
+    return alert(`Bạn không đủ Trúc để đập niêu! Cần ${POT_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  const weights = getActivePotWeights(g);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = POT_REWARDS[targetIndex];
+
+  /* Trừ Trúc cược ngay khi đập niêu */
+  g.bambooPouch -= POT_COST;
+  g.potSmash.smashesToday = (g.potSmash.smashesToday || 0) + 1;
+  trackMinigamePlayed("potsmash");
+
+  _potSmashing = true;
+  document.querySelectorAll(".pot-item").forEach(btn => { btn.disabled = true; });
+  const banner = document.getElementById("pot-result-banner");
+  if (banner) banner.style.display = "none";
+  updateGamificationUI();
+  playSound("pass");
+
+  potBtn.classList.add("smashing");
+  setTimeout(() => {
+    potBtn.classList.remove("smashing");
+    potBtn.textContent = seg.icon;
+    potBtn.classList.remove("broken-reveal");
+    void potBtn.offsetWidth;
+    potBtn.classList.add("broken-reveal");
+    resolvePotSmash(seg);
+    setTimeout(() => {
+      renderPotCluster();
+      renderPotModal();
+    }, 1300);
+  }, 380);
+}
+
+function resolvePotSmash(seg) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(POT_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - POT_COST;
+  g.potSmash.netTotal = (g.potSmash.netTotal || 0) + netChange;
+  g.potSmash.recentResults.push(seg.mult);
+  if (g.potSmash.recentResults.length > 10) g.potSmash.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const banner = document.getElementById("pot-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.textContent = `${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`🏺 Gấu Trúc của ${state.studentName} vừa đập trúng "${seg.label}" ${seg.icon} ở Đập Niêu Đất (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("pot-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  _potSmashing = false;
+  saveState();
+  updateGamificationUI();
+}
+
+/* =========================================================
+   KHU TRÒ CHƠI (tab "🎮 Trò Chơi") — danh sách các mini-game may
+   rủi. Thêm trò mới sau này chỉ cần thêm 1 phần tử vào mảng này.
+   ========================================================= */
+const MINIGAMES = [
+  {
+    id: "wheel",
+    icon: "🎡",
+    name: "Vòng Quay Lễ Hội",
+    desc: "Cược 10 🎋 quay vòng may rủi, ăn Trúc/Mị Lực/XP! Tối đa 5 lượt/ngày.",
+    action: () => openWheelModal()
+  },
+  {
+    id: "fishing",
+    icon: "🎣",
+    name: "Câu Cá Trúc",
+    desc: "Thả câu 10 🎋, may rủi trúng loài cá đủ loại. Tối đa 5 lượt/ngày.",
+    action: () => openFishingModal()
+  },
+  {
+    id: "lantern",
+    icon: "🏮",
+    name: "Thả Đèn Lồng Ước Nguyện",
+    desc: "Thả đèn 10 🎋, cầu may cho đèn bay cao hay bay thấp. Tối đa 5 lượt/ngày.",
+    action: () => openLanternModal()
+  },
+  {
+    id: "kite",
+    icon: "🪁",
+    name: "Thả Diều Tri Thức",
+    desc: "Trả lời 1 câu từ vựng rồi thả diều 10 🎋 — đúng thì gió thuận, sai thì gió ngược! Tối đa 5 lượt/ngày.",
+    action: () => openKiteModal()
+  },
+  {
+    id: "fortune",
+    icon: "☯️",
+    name: "Bốc Xăm Vận May",
+    desc: "Bốc xăm 10 🎋, xem vận may hôm nay của em ra sao. Tối đa 5 lượt/ngày.",
+    action: () => openFortuneModal()
+  },
+  {
+    id: "potsmash",
+    icon: "🏺",
+    name: "Đập Niêu Đất",
+    desc: "Chọn 1 niêu để đập 10 🎋, may rủi xem niêu chứa gì bên trong. Tối đa 5 lượt/ngày.",
+    action: () => openPotModal()
+  }
+];
+
+/* =========================================================
+   HUY HIỆU "LỤC NGHỆ TOÀN TÀI" — thưởng cho học sinh chơi
+   đủ CẢ 6 trò chơi (mỗi trò chỉ cần chơi ≥1 lần, không cần
+   chơi đủ 5 lượt/ngày) trong CÙNG một ngày. Mỗi ngày đạt được
+   mốc này sẽ được tính 1 lần vào g.counters.allGamesDayCount,
+   dùng chung engine BADGE_GROUPS (nhóm "allgames") để tự động
+   trao huy hiệu phân cấp — tối đa 100 ngày mới đạt Cấp 8 (Max).
+   ========================================================= */
+function ensureDailyMinigamesTracking() {
+  const g = state.gamification;
+  if (!g) return;
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (!g.dailyMinigames || g.dailyMinigames.date !== todayStr) {
+    g.dailyMinigames = { date: todayStr, played: [] };
+  }
+  if (!Array.isArray(g.dailyMinigames.played)) g.dailyMinigames.played = [];
+}
+
+function trackMinigamePlayed(gameId) {
+  const g = state.gamification;
+  if (!g) return;
+  ensureDailyMinigamesTracking();
+  if (!g.dailyMinigames.played.includes(gameId)) {
+    g.dailyMinigames.played.push(gameId);
+  }
+  if (!g.counters) g.counters = {};
+  if (typeof g.counters.allGamesDayCount !== "number") g.counters.allGamesDayCount = 0;
+  if (!Array.isArray(g.allGamesDayDates)) g.allGamesDayDates = [];
+
+  const allPlayedToday = MINIGAMES.every(gm => g.dailyMinigames.played.includes(gm.id));
+  if (allPlayedToday && !g.allGamesDayDates.includes(g.dailyMinigames.date)) {
+    g.allGamesDayDates.push(g.dailyMinigames.date);
+    g.counters.allGamesDayCount = g.allGamesDayDates.length;
+    addActivityLog(`🎮 ${state.studentName} đã chơi đủ cả 6 trò chơi trong hôm nay! (${g.counters.allGamesDayCount} ngày)`);
+    showToast(`🎮 CHƠI ĐỦ 6 TRÒ CHƠI HÔM NAY!\nCố lên để đạt huy hiệu 🎮 Lục Nghệ Toàn Tài nhé!`, "success");
+  }
+  renderMinigamesRoadmap();
+}
+
+/* Tiến độ chơi đủ 6 trò hôm nay, dùng để hiện lộ trình huy hiệu ở mục Trò Chơi */
+function getMinigamesTodayProgress() {
+  const g = state.gamification;
+  if (!g) return { played: [], total: MINIGAMES.length };
+  ensureDailyMinigamesTracking();
+  return { played: g.dailyMinigames.played.slice(), total: MINIGAMES.length };
+}
+
+/* Vẽ hàng "Tiến độ hôm nay" (6 icon trò chơi, tô màu khi đã chơi) +
+   lộ trình 8 cấp huy hiệu "Lục Nghệ Toàn Tài" ở mục Trò Chơi. */
+function renderMinigamesRoadmap() {
+  const g = state.gamification;
+  if (!g) return;
+  const progressWrap = document.getElementById("minigames-today-progress");
+  const roadmapWrap = document.getElementById("minigames-badge-roadmap");
+  if (!progressWrap || !roadmapWrap) return;
+
+  const { played } = getMinigamesTodayProgress();
+  progressWrap.innerHTML = MINIGAMES.map(gm => {
+    const done = played.includes(gm.id);
+    return `
+      <div style="display:flex; flex-direction:column; align-items:center; gap:2px; min-width:56px; opacity:${done ? '1' : '0.45'}; filter:${done ? 'none' : 'grayscale(1)'};">
+        <div style="font-size:24px;">${gm.icon}</div>
+        <div style="font-size:10px; font-weight:800; color:var(--seal-dark);">${done ? '✅' : '⭕'}</div>
+      </div>
+    `;
+  }).join("") + `<div style="width:100%; text-align:center; font-size:12px; font-weight:800; color:var(--jade-dark); margin-top:4px;">Hôm nay: ${played.length}/${MINIGAMES.length} trò chơi</div>`;
+
+  const group = BADGE_GROUPS.find(x => x.groupId === "allgames");
+  if (!group) return;
+  const val = group.metric(g);
+  roadmapWrap.innerHTML = "";
+  group.tiers.forEach(t => {
+    const bId = `${group.groupId}_t${t.tier}`;
+    const isUnlocked = (g.unlockedBadges || []).includes(bId);
+    const div = document.createElement("div");
+    div.className = `badge-item tier-${t.tier} ${isUnlocked ? 'unlocked' : ''}`;
+    const progressTxt = isUnlocked ? `✅ Đã đạt` : `${Math.min(val, t.threshold)}/${t.threshold} ngày`;
+    div.innerHTML = `
+      <div class="b-tier-tag">CẤP ${t.tier}</div>
+      <div class="b-icon">${group.icon}</div>
+      <div class="b-title">${t.name}</div>
+      <div class="b-desc">${t.threshold} ${group.metricLabel}</div>
+      <div class="b-progress">${progressTxt}</div>
+    `;
+    roadmapWrap.appendChild(div);
+  });
+}
+
+function renderMinigamesGrid() {
+  const grid = document.getElementById("minigames-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  MINIGAMES.forEach(gm => {
+    const card = document.createElement("div");
+    card.className = "minigame-card";
+    card.innerHTML = `
+      <div class="minigame-icon">${gm.icon}</div>
+      <div class="minigame-name">${gm.name}</div>
+      <div class="minigame-desc">${gm.desc}</div>
+      <button class="btn btn-primary minigame-play-btn" style="width:100%; font-size:13px; padding:8px 10px; border-radius:12px; background:linear-gradient(90deg,#D4AF37,#F0C75E); border-color:#B8860B; box-shadow:0 3px 0 #B8860B; color:#3A2E00;">▶️ Chơi ngay</button>
+    `;
+    card.querySelector(".minigame-play-btn").addEventListener("click", gm.action);
+    grid.appendChild(card);
+  });
+  renderMinigamesRoadmap();
+}
+
+function openWheelModal() {
+  checkResetWheelDaily();
+  buildWheelSVG();
+  const svg = document.getElementById("wheel-svg");
+  if (svg) {
+    svg.style.transition = "none";
+    svg.style.transform = "rotate(0deg)";
+    svg.classList.remove("spinning");
+    void svg.offsetWidth;
+    svg.style.transition = "";
+  }
+  const stage = document.getElementById("wheel-stage");
+  if (stage) stage.classList.remove("wheel-land-bump", "wheel-shake");
+  const banner = document.getElementById("wheel-result-banner");
+  if (banner) banner.style.display = "none";
+  const modal = document.getElementById("wheel-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderWheelModal();
+}
+
+function renderWheelModal() {
+  checkResetWheelDaily();
+  const g = state.gamification;
+  if (!g) return;
+  const balEl = document.getElementById("wheel-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+  const leftEl = document.getElementById("wheel-spins-left");
+  const spinsLeft = Math.max(0, WHEEL_DAILY_LIMIT - (g.luckyWheel.spinsToday || 0));
+  if (leftEl) leftEl.textContent = `${spinsLeft}/${WHEEL_DAILY_LIMIT}`;
+
+  const spinBtn = document.getElementById("spin-wheel-btn");
+  if (spinBtn) {
+    const canSpin = spinsLeft > 0 && (g.bambooPouch || 0) >= WHEEL_SPIN_COST;
+    spinBtn.disabled = !canSpin;
+    spinBtn.style.opacity = canSpin ? "1" : "0.55";
+    if (spinsLeft <= 0) {
+      spinBtn.textContent = "🎡 Hết lượt quay hôm nay";
+    } else if ((g.bambooPouch || 0) < WHEEL_SPIN_COST) {
+      spinBtn.textContent = "🎡 Không đủ Trúc để quay";
+    } else {
+      spinBtn.textContent = `🎡 Quay Ngay (${WHEEL_SPIN_COST} 🎋)`;
+    }
+  }
+}
+
+let _wheelSpinning = false;
+
+function spinLuckyWheel() {
+  if (_wheelSpinning) return;
+  checkResetWheelDaily();
+  const g = state.gamification;
+  if (!g) return;
+
+  const spinsLeft = Math.max(0, WHEEL_DAILY_LIMIT - (g.luckyWheel.spinsToday || 0));
+  if (spinsLeft <= 0) {
+    return alert(`Bạn đã dùng hết ${WHEEL_DAILY_LIMIT} lượt quay hôm nay rồi! Hẹn quay lại vào ngày mai nhé 🎡`);
+  }
+  if ((g.bambooPouch || 0) < WHEEL_SPIN_COST) {
+    return alert(`Bạn không đủ Trúc để quay! Cần ${WHEEL_SPIN_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  const weights = getActiveWheelWeights(g);
+  const targetIndex = pickWeightedWheelIndex(weights);
+  const seg = WHEEL_SEGMENTS[targetIndex];
+  const n = WHEEL_SEGMENTS.length;
+  const sliceAngle = 360 / n;
+
+  /* Trừ Trúc cược ngay khi bắt đầu quay */
+  g.bambooPouch -= WHEEL_SPIN_COST;
+  g.luckyWheel.spinsToday = (g.luckyWheel.spinsToday || 0) + 1;
+  trackMinigamePlayed("wheel");
+
+  _wheelSpinning = true;
+  const spinBtn = document.getElementById("spin-wheel-btn");
+  if (spinBtn) spinBtn.disabled = true;
+  const banner = document.getElementById("wheel-result-banner");
+  if (banner) banner.style.display = "none";
+  updateGamificationUI();
+  renderWheelModal();
+  playSound("pass");
+
+  const SPIN_DURATION_MS = 4500;
+  scheduleWheelTicks(SPIN_DURATION_MS);
+
+  /* Ô i được vẽ với tâm tại góc (-90 + i*sliceAngle + sliceAngle/2).
+     Con trỏ cố định ở góc -90 (đỉnh vòng quay), nên cần xoay wheel một
+     góc để tâm ô target trùng với vị trí con trỏ, cộng thêm vài vòng
+     quay đầy đủ (5-7 vòng) để tạo hiệu ứng quay, cùng 1 lệch nhỏ ngẫu
+     nhiên trong lòng ô cho tự nhiên (không luôn dừng đúng tâm ô). */
+  const segCenterDeg = targetIndex * sliceAngle + sliceAngle / 2;
+  const jitter = (Math.random() - 0.5) * (sliceAngle * 0.6);
+  const extraSpins = 5 + Math.floor(Math.random() * 3);
+  const finalRotation = extraSpins * 360 + (360 - segCenterDeg) + jitter;
+
+  const svg = document.getElementById("wheel-svg");
+  if (svg) {
+    svg.classList.add("spinning");
+    svg.style.transform = `rotate(${finalRotation}deg)`;
+  }
+
+  setTimeout(() => {
+    if (svg) svg.classList.remove("spinning");
+    const pointer = document.getElementById("wheel-pointer");
+    if (pointer) {
+      pointer.classList.remove("bounce");
+      void pointer.offsetWidth;
+      pointer.classList.add("bounce");
+      setTimeout(() => pointer.classList.remove("bounce"), 600);
+    }
+    spawnWheelFlash();
+    resolveWheelSpin(seg);
+  }, SPIN_DURATION_MS + 100);
+}
+
+function resolveWheelSpin(seg) {
+  const g = state.gamification;
+  if (!g) return;
+
+  const bambooBack = Math.round(WHEEL_SPIN_COST * seg.mult);
+  g.bambooPouch += bambooBack;
+  const netChange = bambooBack - WHEEL_SPIN_COST;
+  g.luckyWheel.netTotal = (g.luckyWheel.netTotal || 0) + netChange;
+  g.luckyWheel.recentResults.push(seg.mult);
+  if (g.luckyWheel.recentResults.length > 10) g.luckyWheel.recentResults.shift();
+
+  let extraText = "";
+  if (seg.type === "charm") {
+    g.badgeCharmBonus = (g.badgeCharmBonus || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} Mị Lực 💖`;
+  } else if (seg.type === "xp") {
+    g.totalXp = (g.totalXp || 0) + seg.bonus;
+    extraText = ` + ${seg.bonus} XP ⭐`;
+  }
+
+  const banner = document.getElementById("wheel-result-banner");
+  if (banner) {
+    const isWin = netChange > 0;
+    const isEven = netChange === 0;
+    banner.style.background = isWin ? "#E8F5E9" : (isEven ? "#FFF8E1" : "#FFEBEE");
+    banner.style.color = isWin ? "#2E7D32" : (isEven ? "#8D6E00" : "#B71C1C");
+    banner.style.border = `2px solid ${isWin ? "#81C784" : (isEven ? "#FFE082" : "#EF9A9A")}`;
+    banner.textContent = `${seg.icon} ${seg.label}! Nhận lại ${bambooBack} 🎋${extraText} (${netChange >= 0 ? "+" : ""}${netChange} 🎋 so với cược)`;
+    banner.style.display = "block";
+  }
+
+  addActivityLog(`🎡 Gấu Trúc của ${state.studentName} vừa quay Vòng Quay Lễ Hội, trúng "${seg.label}" ${seg.icon} (nhận lại ${bambooBack} 🎋${extraText})!`);
+
+  const stage = document.getElementById("wheel-stage");
+  if (netChange < 0) {
+    stage?.classList.remove("wheel-land-bump");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-shake");
+    setTimeout(() => stage?.classList.remove("wheel-shake"), 450);
+  } else {
+    stage?.classList.remove("wheel-shake");
+    void stage?.offsetWidth;
+    stage?.classList.add("wheel-land-bump");
+    setTimeout(() => stage?.classList.remove("wheel-land-bump"), 450);
+    if (netChange > 0) spawnLeaderboardConfetti();
+  }
+
+  _wheelSpinning = false;
+  saveState();
+  updateGamificationUI();
+  renderWheelModal();
+  playSound(seg.mult >= 1 ? "correct" : "wrong");
 }
 
 function openGiftModal(defaultTargetPeer = null) {
@@ -9389,6 +11503,7 @@ function refreshActiveViewData() {
 
   const vId = activeView.id;
   if (vId === "view-pandahome") updateGamificationUI();
+  if (vId === "view-minigames") renderMinigamesGrid();
   if (vId === "view-flashcard") buildFcDeck();
   if (vId === "view-quiz") { fillTopicSelect(qzTopicSel); updateQuizCountHint(); }
   if (vId === "view-pinyintest") { fillTopicSelect(pyTopicSel); updatePyCountHint(); }
@@ -9528,8 +11643,53 @@ window.addEventListener("DOMContentLoaded", () => {
     buyReincarnationElixir();
   });
 
+  document.getElementById("close-wheel-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("wheel-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("spin-wheel-btn")?.addEventListener("click", () => {
+    spinLuckyWheel();
+  });
+
+  document.getElementById("close-fishing-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("fishing-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("cast-fishing-btn")?.addEventListener("click", () => {
+    castFishingLine();
+  });
+
+  document.getElementById("close-lantern-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("lantern-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("release-lantern-btn")?.addEventListener("click", () => {
+    releaseLantern();
+  });
+
+  document.getElementById("close-kite-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("kite-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("cast-kite-btn")?.addEventListener("click", () => {
+    castKiteLine();
+  });
+
+  document.getElementById("close-fortune-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("fortune-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("draw-fortune-btn")?.addEventListener("click", () => {
+    drawFortuneSlip();
+  });
+
+  document.getElementById("close-pot-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("pot-modal");
+    if (m) m.style.display = "none";
+  });
+
   /* Close modals on background overlay click */
-  ["gift-modal", "shop-modal", "steal-modal", "levelup-modal", "class-pass-modal", "dictation-pass-modal", "transform-modal", "reincarnation-modal"].forEach(id => {
+  ["gift-modal", "shop-modal", "steal-modal", "levelup-modal", "class-pass-modal", "dictation-pass-modal", "transform-modal", "reincarnation-modal", "wheel-modal", "fishing-modal", "lantern-modal", "kite-modal", "fortune-modal", "pot-modal"].forEach(id => {
     const modalEl = document.getElementById(id);
     if (modalEl) {
       modalEl.addEventListener("click", (e) => {
