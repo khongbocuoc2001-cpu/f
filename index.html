@@ -2809,6 +2809,13 @@ function captureSharedConfig() {
    50 TIN MỚI NHẤT mỗi lớp — tin cũ hơn (vượt quá 50) sẽ tự động bị loại
    bỏ để nhường chỗ cho tin mới. Các lớp không hề bị trộn tin với nhau. */
 const CLASS_FEED_MAX_ITEMS = 50;
+/* FIX: khoảng thời gian (ms) để GỘP các lượt "cho ăn Trúc" liên tiếp của
+   CÙNG 1 học sinh vào chung 1 dòng tin duy nhất trên Bảng Tin, thay vì mỗi
+   lần bấm cho ăn lại tạo 1 dòng mới (gây rác Bảng Tin khi học sinh cho ăn
+   dồn dập / cho ăn tất cả nhiều lần). Trong khoảng thời gian này, lượt cho
+   ăn mới sẽ CỘNG DỒN số Trúc + XP vào dòng tin gần nhất thay vì tạo dòng
+   mới. Xem addOrMergeFeedLog(). */
+const FEED_LOG_MERGE_WINDOW_MS = 10 * 60 * 1000; // 10 phút
 function mergeOneClassFeed(localFeed, remoteFeed) {
   const map = new Map();
   [].concat(Array.isArray(localFeed) ? localFeed : [], Array.isArray(remoteFeed) ? remoteFeed : [])
@@ -5140,12 +5147,12 @@ function feedPanda(amount) {
     /* Vừa mới CHẠM NGƯỠNG khóa: XP đã đủ để lên Level tiếp nhưng còn
        thiếu Mị Lực — báo ngay cho học sinh biết để đi mua đạo cụ. */
     const stillNeed = Math.max(0, newDetails.charmNeeded - myCharm);
-    addActivityLog(`🍖 Gấu của ${state.studentName} vừa được ăn +${toFeed} Cành Trúc (+${toFeed * 10} XP)! 🎋`);
+    addOrMergeFeedLog(toFeed, toFeed * 10);
     setTimeout(() => {
       alert(`✨ Gấu Trúc của bạn đã ĐỦ XP để lên Level ${newDetails.level + 1}, nhưng còn thiếu 💖 Mị Lực!\n\nHiện có: ${myCharm} 💖 / Cần: ${newDetails.charmNeeded} 💖 (thiếu ${stillNeed} 💖)\n\nHãy ghé Cửa Hàng Trúc 🛍️ mua thêm đạo cụ trang trí cho Vườn Trúc để tăng Mị Lực và chính thức thăng cấp nhé!`);
     }, 150);
   } else {
-    addActivityLog(`🍖 Gấu của ${state.studentName} vừa được ăn +${toFeed} Cành Trúc (+${toFeed * 10} XP)! 🎋`);
+    addOrMergeFeedLog(toFeed, toFeed * 10);
   }
 
   saveState();
@@ -5186,6 +5193,45 @@ function pushClassFeedEntry(storeField, text, className) {
 
 function addActivityLog(text, className) {
   pushClassFeedEntry("classFeeds", text, className);
+  renderActivityFeed();
+}
+
+/* FIX: dùng riêng cho tin "cho ăn Trúc" — nếu dòng tin GẦN NHẤT của Bảng
+   Tin lớp này cũng là 1 lượt "cho ăn Trúc" của ĐÚNG học sinh này và cách
+   đây chưa quá FEED_LOG_MERGE_WINDOW_MS, thì CỘNG DỒN số Trúc + XP vào
+   dòng tin đó (cập nhật lại text + thời gian) thay vì tạo dòng tin mới.
+   Nhờ vậy khi học sinh bấm "Cho Ăn 1", "Cho Ăn Tất Cả" hay "Cho Ăn Theo
+   Số Chỉ Định" nhiều lần liên tiếp, Bảng Tin chỉ hiện ĐÚNG 1 dòng tổng
+   thay vì lặp lại nhiều dòng giống hệt nhau. */
+function addOrMergeFeedLog(toFeed, xpGained, className) {
+  const cName = className || state.currentClassName;
+  if (!cName) return;
+  if (!state.classFeeds || typeof state.classFeeds !== "object") state.classFeeds = {};
+  if (!Array.isArray(state.classFeeds[cName])) state.classFeeds[cName] = [];
+  const feedArr = state.classFeeds[cName];
+  const now = Date.now();
+  const top = feedArr[0];
+  const canMerge = top && top.feedType === "eat" && top.student === state.studentName &&
+    typeof top.ts === "number" && (now - top.ts) <= FEED_LOG_MERGE_WINDOW_MS;
+
+  if (canMerge) {
+    top.amount = (top.amount || 0) + toFeed;
+    top.xp = (top.xp || 0) + xpGained;
+    top.ts = now;
+    top.text = `🍖 Gấu của ${state.studentName} vừa được ăn +${top.amount} Cành Trúc (+${top.xp} XP)! 🎋`;
+  } else {
+    feedArr.unshift({
+      id: "g_" + now + "_" + Math.random().toString(36).slice(2, 7),
+      text: `🍖 Gấu của ${state.studentName} vừa được ăn +${toFeed} Cành Trúc (+${xpGained} XP)! 🎋`,
+      ts: now,
+      feedType: "eat",
+      student: state.studentName,
+      amount: toFeed,
+      xp: xpGained
+    });
+  }
+  if (feedArr.length > CLASS_FEED_MAX_ITEMS) feedArr.length = CLASS_FEED_MAX_ITEMS;
+  saveState();
   renderActivityFeed();
 }
 
