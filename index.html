@@ -150,7 +150,7 @@
   .class-item-box:hover{ border-color:var(--jade); background:var(--accent-light); transform:translateY(-2px); box-shadow:var(--shadow-md); }
 
   /* Modals */
-  #class-pass-modal, #dictation-pass-modal, #levelup-modal, #shop-modal, #steal-modal, #gift-modal, #transform-modal{
+  #class-pass-modal, #dictation-pass-modal, #levelup-modal, #shop-modal, #steal-modal, #gift-modal, #transform-modal, #reincarnation-modal{
     position:fixed; inset:0; background:rgba(15,28,22,0.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:10005; display:none; align-items:center; justify-content:center; padding:20px;
   }
   .pass-modal-card{ background:var(--card-bg); border:1px solid var(--paper-darker); border-radius:var(--radius-lg); padding:26px; max-width:420px; width:100%; text-align:center; box-shadow:var(--shadow-lg); position:relative; animation:modalPop 0.22s var(--ease); }
@@ -471,6 +471,39 @@
   }
   .lb-row-transformed{ border-color:#D500F9 !important; box-shadow:0 0 0 2px rgba(213,0,249,0.25), 0 3px 12px rgba(213,0,249,0.25) !important; position:relative; overflow:hidden; }
   .lb-row-transformed::after{ content:""; position:absolute; top:0; left:-60%; width:35%; height:100%; background:linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent); animation:badgeSparkleSweep 2.4s linear infinite; pointer-events:none; }
+
+  /* Badge "🔄 Luân Hồi xN" cạnh tên trên Bảng Xếp Hạng cho học viên đã Luân Hồi ≥1 lần —
+     hào quang lửa-vàng xoay quanh + viên ngọc sáng nhấp nháy + icon xoay tròn */
+  .lb-reinc-wrap{ position:relative; display:inline-flex; vertical-align:middle; margin-left:6px; }
+  .lb-reinc-halo{
+    position:absolute; inset:-7px; border-radius:999px; z-index:0; pointer-events:none;
+    background:conic-gradient(from 0deg,#FFD54F,#FF6F00,#B71C1C,#FFD54F,#FF6F00,#B71C1C,#FFD54F);
+    filter:blur(6px); opacity:0.75; animation:reincHaloSpin 2.4s linear infinite, reincHaloPulse 1.7s ease-in-out infinite;
+  }
+  .lb-reincarnation-badge{
+    position:relative; z-index:1; overflow:hidden; display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:900; color:#fff; padding:3px 10px; border-radius:999px;
+    background:linear-gradient(90deg,#B71C1C,#FF6F00,#FDD835,#FF6F00,#B71C1C); background-size:300% auto;
+    animation:reincSheen 2.8s linear infinite, reincBreathe 2s ease-in-out infinite;
+    text-shadow:0 1px 2px rgba(0,0,0,0.35);
+  }
+  .lb-reincarnation-badge::after{
+    content:""; position:absolute; top:0; left:-60%; width:35%; height:100%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.95), transparent);
+    animation:badgeSparkleSweep 1.7s linear infinite; pointer-events:none;
+  }
+  .lb-reinc-icon{ display:inline-block; animation:reincSpin 2.2s linear infinite; filter:drop-shadow(0 0 3px rgba(255,235,59,0.9)); }
+  @keyframes reincSheen{ 0%{ background-position:0% center; } 100%{ background-position:300% center; } }
+  @keyframes reincBreathe{
+    0%,100%{ transform:scale(1); box-shadow:0 0 8px 2px rgba(255,111,0,0.55), 0 0 0 1px rgba(255,215,64,0.5) inset; }
+    50%{ transform:scale(1.07); box-shadow:0 0 18px 6px rgba(255,111,0,0.9), 0 0 0 1px rgba(255,215,64,0.8) inset; }
+  }
+  @keyframes reincHaloSpin{ 0%{ transform:rotate(0deg); } 100%{ transform:rotate(360deg); } }
+  @keyframes reincHaloPulse{ 0%,100%{ opacity:0.45; } 50%{ opacity:0.9; } }
+  @keyframes reincSpin{ 0%{ transform:rotate(0deg); } 100%{ transform:rotate(360deg); } }
+  /* Dòng của học viên đang "Chờ Luân Hồi" (đủ XP nhưng chưa mua Đan) trên Bảng Xếp Hạng */
+  .lb-row-pending-reincarnation{ border-color:#EF5350 !important; background:linear-gradient(135deg,#FFEBEE,#FFCDD2) !important; position:relative; overflow:hidden; }
+  .lb-row-pending-reincarnation::after{ content:""; position:absolute; top:0; left:-60%; width:35%; height:100%; background:linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent); animation:badgeSparkleSweep 2.2s linear infinite; pointer-events:none; }
 
   /* ===== Hào Quang Uy Nghiêm theo Level trên Bảng Xếp Hạng =====
      Từ Level 30 trở đi, cứ mỗi 10 Level tăng thêm 1 cấp hào quang (8 cấp
@@ -882,6 +915,28 @@
   </div>
 </div>
 
+<!-- LUÂN HỒI MODAL (sau Level 30, cứ mỗi 10 Level: 40, 50, 60... tốn 300 Trúc/lần) -->
+<div id="reincarnation-modal">
+  <div class="pass-modal-card" style="max-width:520px; text-align:left;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:2px dashed var(--paper-darker); padding-bottom:10px;">
+      <h3 style="font-family:var(--serif); color:#C62828; margin:0;">🔄 Ải Luân Hồi</h3>
+      <button class="btn btn-outline" id="close-reincarnation-modal-btn" style="padding:4px 10px; font-size:12px;">✕ Đóng</button>
+    </div>
+    <div id="reincarnation-note" style="background:#FFEBEE; border:2px solid #EF9A9A; border-radius:14px; padding:12px; margin-bottom:14px; font-size:13px; color:#B71C1C; font-weight:700; line-height:1.5;">
+      📌 Gấu Trúc của bạn đã tích đủ XP để lên Level tiếp theo, nhưng đây là một "Ải Luân Hồi"! Cần tích đủ 300 🎋 Cành Trúc rồi mua Luân Hồi Đan ⚗️ mới được chính thức thăng cấp.
+    </div>
+    <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:14px; padding:12px 14px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:8px;">
+        <span>🎒 Túi Trúc hiện có:</span>
+        <strong style="color:var(--seal-dark); font-size:16px;" id="reincarnation-bamboo-balance">0 🎋</strong>
+      </div>
+      <div class="timer-wrap" style="height:16px; margin:0;"><div class="timer-bar" id="reincarnation-progress-bar" style="width:0%; background:linear-gradient(90deg,#E53935,#EF9A9A);"></div></div>
+      <div style="text-align:right; font-size:12px; font-weight:800; color:#B71C1C; margin-top:4px;" id="reincarnation-progress-text">0/300 🎋</div>
+    </div>
+    <button class="btn btn-primary" id="buy-reincarnation-btn" style="width:100%; font-size:14px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#C62828,#E53935); border-color:#8E0000; box-shadow:0 3px 0 #8E0000;">⚗️ Mua Luân Hồi Đan (300 🎋)</button>
+  </div>
+</div>
+
 <div class="corner-note">🐼 雅趣学堂 · THẦY MARCUS 🎋</div>
 <button id="theme-toggle-btn"><span id="theme-toggle-icon">🌙</span><span id="theme-toggle-label">Trà đạo đêm</span></button>
 
@@ -963,6 +1018,13 @@
         <h2 style="font-family:var(--serif); color:var(--seal-dark); margin:8px 0 2px; position:relative; z-index:2;" id="ph-student-title">Gấu Trúc Của Học Viên</h2>
         <div style="font-size:15px; font-weight:800; color:var(--jade-dark); margin-bottom:6px; position:relative; z-index:2;" id="ph-level-name">LEVEL 1 · GẤU MẦM TRÚC 🌱</div>
         <div class="transform-legend-tag" id="ph-transform-tag" style="display:none; position:relative; z-index:2; margin-bottom:10px;"></div>
+
+        <!-- "Ải Luân Hồi" Banner — hiện khi đủ XP lên Level tiếp nhưng chưa mua Luân Hồi Đan -->
+        <div id="ph-reincarnation-banner" style="display:none; position:relative; z-index:3; margin-bottom:12px; background:#FFEBEE; border:2px solid #EF9A9A; border-radius:14px; padding:10px 14px; text-align:center; max-width:460px; width:100%;">
+          <div style="font-weight:800; color:#B71C1C; font-size:13px; margin-bottom:6px;" id="ph-reincarnation-text">⏳ Cần Luân Hồi để lên Level tiếp!</div>
+          <div class="timer-wrap" style="height:14px; margin:0 0 8px;"><div class="timer-bar" id="ph-reincarnation-bar" style="width:0%; background:linear-gradient(90deg,#E53935,#EF9A9A);"></div></div>
+          <button class="btn btn-primary" id="open-reincarnation-btn" style="font-size:12px; padding:8px 14px; border-radius:12px; background:linear-gradient(90deg,#C62828,#E53935); border-color:#8E0000; box-shadow:0 3px 0 #8E0000;">⚗️ Mua Luân Hồi Đan (300 🎋)</button>
+        </div>
 
         <!-- Shop, Gift, Steal & Transform Action Buttons -->
         <div style="position:relative; z-index:3; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%;">
@@ -1913,7 +1975,7 @@ const BADGE_GROUPS = [
     title: "Đại Sư Tốt Nghiệp",
     icon: "🎓",
     metricLabel: "Level Gấu Trúc",
-    metric: g => calcLevelDetails(g.totalXp || 0, getTotalCharm(g)).level,
+    metric: g => calcLevelDetails(g.totalXp || 0, getTotalCharm(g), g.reincarnationCount || 0).level,
     tiers: [
       { tier: 1, threshold: 10, xp: 0, charm: 20,  name: "Đại Sư Tốt Nghiệp · Cấp 1" },
       { tier: 2, threshold: 20, xp: 0, charm: 50,  name: "Đại Sư Tốt Nghiệp · Cấp 2" },
@@ -1959,6 +2021,29 @@ const CHARM_GATE_STEP = 20;
 function getCharmRequiredForLevel(lv) {
   if (lv <= CHARM_GATE_START_LEVEL) return 0;
   return (lv - CHARM_GATE_START_LEVEL) * CHARM_GATE_STEP;
+}
+
+/* ===== HỆ THỐNG "LUÂN HỒI" (sau Level 30, mỗi 10 Level) =====
+   Từ Level REINCARNATION_START_LEVEL (40) trở đi, cứ mỗi
+   REINCARNATION_STEP (10) Level lại xuất hiện 1 "Ải Luân Hồi": 40, 50,
+   60, 70... Học viên đủ XP để CHẠM mốc đó nhưng KHÔNG được lên Level
+   ngay — phải tích đủ REINCARNATION_COST (300) Cành Trúc rồi bấm "Mua
+   Luân Hồi Đan ⚗️" (TRỪ Trúc hẳn, khác với Mị Lực chỉ cần "có đủ" mà
+   không mất) mới chính thức thăng cấp. Trong lúc gom góp, tính năng
+   Cướp Trúc vẫn hoạt động song song -> các bạn khác có thể tranh thủ
+   cướp bớt, tạo hiệu ứng "chạy đua tích Trúc" gay cấn.
+   Tái sử dụng đúng pattern charmLocked ở calcLevelDetails bên dưới. */
+const REINCARNATION_START_LEVEL = 40;
+const REINCARNATION_STEP = 10;
+const REINCARNATION_COST = 300;
+/* true nếu `lv` là 1 mốc "Ải Luân Hồi" (40, 50, 60...) */
+function isReincarnationGateLevel(lv) {
+  return lv >= REINCARNATION_START_LEVEL && (lv - REINCARNATION_START_LEVEL) % REINCARNATION_STEP === 0;
+}
+/* Thứ tự của ải (40 = ải thứ 1, 50 = ải thứ 2...) — cũng chính là số lần
+   Luân Hồi TỐI THIỂU cần có để được đi qua mốc Level này. */
+function reincarnationGateIndex(lv) {
+  return Math.floor((lv - REINCARNATION_START_LEVEL) / REINCARNATION_STEP) + 1;
 }
 const SPIRIT_ANIMALS = [
   /* ===== Nhóm Uy Nghiêm (Thần Thú) ===== */
@@ -2308,6 +2393,11 @@ function sanitizeState(s) {
   if (!Array.isArray(g.decorations)) g.decorations = [];
   if (typeof g.badgeCharmBonus !== "number") g.badgeCharmBonus = 0;
   if (typeof g.spiritAnimal !== "string") g.spiritAnimal = "";
+  /* Hệ thống "Luân Hồi" (sau Level 30, mỗi 10 Level): reincarnationCount
+     = số lần đã Luân Hồi thành công; pendingReincarnation = Level đang
+     bị khóa chờ mua Luân Hồi Đan (null nếu không bị khóa). */
+  if (typeof g.reincarnationCount !== "number") g.reincarnationCount = 0;
+  if (typeof g.pendingReincarnation !== "number") g.pendingReincarnation = null;
 
   if (!g.counters || typeof g.counters !== "object") g.counters = {};
   if (typeof g.counters.quizCount !== "number") g.counters.quizCount = 0;
@@ -2861,7 +2951,14 @@ function syncPeersFromRoster() {
     if (s.role === "teacher") return;
     if (state.username && String(s.username).toLowerCase() === String(state.username).toLowerCase()) return;
     const charm = calcPandaCharm(s.decorations || []) + (s.badgeCharmBonus || 0);
-    const lDetails = calcLevelDetails(s.totalXp || 0, charm);
+    /* FIX (tính năng Luân Hồi): nếu backend get_class_members chưa được
+       cập nhật để trả về reincarnationCount (giống cách đã trả về
+       spiritAnimal), mặc định 0 — đúng với học viên hoàn toàn mới, và
+       hãy nhớ thêm "reincarnationCount"/"pendingReincarnation" vào phản
+       hồi của action get_class_members phía server để đồng bộ đúng cho
+       học viên đã Luân Hồi trên các thiết bị khác. */
+    const reincarnationCount = s.reincarnationCount || 0;
+    const lDetails = calcLevelDetails(s.totalXp || 0, charm, reincarnationCount);
     const lMeta = getLevelMetadata(lDetails.level);
 
     let p = g.peers.find(x => x.username === s.username);
@@ -2881,6 +2978,8 @@ function syncPeersFromRoster() {
     p.charmLocked = lDetails.charmLocked;
     p.charmNeeded = lDetails.charmNeeded;
     p.spiritAnimal = s.spiritAnimal || "";
+    p.reincarnationCount = reincarnationCount;
+    p.pendingReincarnation = lDetails.reincarnationLocked ? lDetails.pendingReincarnationLevel : null;
   });
 
   /* Bỏ các peer không còn tồn tại trên server (đã bị giáo viên xóa) */
@@ -3997,11 +4096,13 @@ function getXpForLevel(lv) {
    totalCharm (mặc định Infinity) = không áp dụng cổng, dùng cho những
    chỗ chỉ cần tính Level thuần theo XP (ví dụ hiển thị nhanh, không có
    sẵn dữ liệu Mị Lực). */
-function calcLevelDetails(totalXp, totalCharm = Infinity) {
+function calcLevelDetails(totalXp, totalCharm = Infinity, reincarnationCount = Infinity) {
   let lv = 1;
   let rem = totalXp;
   let charmLocked = false;
   let charmNeeded = 0;
+  let reincarnationLocked = false;
+  let pendingReincarnationLevel = 0;
   while (true) {
     let req = getXpForLevel(lv);
     if (rem < req) break;
@@ -4013,6 +4114,13 @@ function calcLevelDetails(totalXp, totalCharm = Infinity) {
       charmNeeded = needCharm;
       break;
     }
+    if (isReincarnationGateLevel(lv + 1) && reincarnationCount < reincarnationGateIndex(lv + 1)) {
+      /* Đủ XP + Mị Lực nhưng chạm "Ải Luân Hồi": dừng lại, GIỮ NGUYÊN XP
+         dư, chờ học sinh tích đủ 300 Trúc mua Luân Hồi Đan mới lên Level. */
+      reincarnationLocked = true;
+      pendingReincarnationLevel = lv + 1;
+      break;
+    }
     rem -= req;
     lv++;
   }
@@ -4022,7 +4130,9 @@ function calcLevelDetails(totalXp, totalCharm = Infinity) {
     requiredXpForNext: getXpForLevel(lv),
     charmLocked,
     charmNeeded,
-    charmHave: totalCharm === Infinity ? null : totalCharm
+    charmHave: totalCharm === Infinity ? null : totalCharm,
+    reincarnationLocked,
+    pendingReincarnationLevel
   };
 }
 
@@ -4078,10 +4188,14 @@ function updateGamificationUI() {
   refreshLightspeedBadges();
 
   const totalCharm = getTotalCharm(g);
-  const lDetails = calcLevelDetails(g.totalXp, totalCharm);
+  const lDetails = calcLevelDetails(g.totalXp, totalCharm, g.reincarnationCount || 0);
   const lMeta = getLevelMetadata(lDetails.level);
   const isMaxLevel = lDetails.level >= SPIRIT_ANIMAL_REQUIRED_LEVEL;
   const mySpirit = isMaxLevel ? getSpiritAnimalById(g.spiritAnimal) : null;
+
+  /* Chốt lại trạng thái "Chờ Luân Hồi" vào state (để hiển thị trên Bảng
+     Xếp Hạng cho bạn học khác thấy, và lưu bền qua saveState() cuối hàm). */
+  g.pendingReincarnation = lDetails.reincarnationLocked ? lDetails.pendingReincarnationLevel : null;
 
   if (state.studentName && Array.isArray(g.peers)) {
     let me = g.peers.find(p => p.name === state.studentName);
@@ -4095,7 +4209,9 @@ function updateGamificationUI() {
         decorations: g.decorations || [],
         charm: totalCharm,
         badges: g.unlockedBadges || [],
-        spiritAnimal: g.spiritAnimal || ""
+        spiritAnimal: g.spiritAnimal || "",
+        reincarnationCount: g.reincarnationCount || 0,
+        pendingReincarnation: g.pendingReincarnation
       };
       g.peers.push(me);
     } else {
@@ -4106,6 +4222,8 @@ function updateGamificationUI() {
       me.charm = totalCharm;
       me.badges = g.unlockedBadges || [];
       me.spiritAnimal = g.spiritAnimal || "";
+      me.reincarnationCount = g.reincarnationCount || 0;
+      me.pendingReincarnation = g.pendingReincarnation;
     }
   }
 
@@ -4115,14 +4233,18 @@ function updateGamificationUI() {
   const pct = Math.min(100, Math.round((lDetails.currentLevelXp / lDetails.requiredXpForNext) * 100));
   const ghXpValEl = document.getElementById("gh-xp-val");
   if (ghXpValEl) {
-    ghXpValEl.textContent = lDetails.charmLocked
+    ghXpValEl.textContent = lDetails.reincarnationLocked
+      ? `⏳ Chờ Luân Hồi (LV${lDetails.pendingReincarnationLevel})`
+      : lDetails.charmLocked
       ? `XP ĐẦY · 🔒 Cần ${lDetails.charmNeeded} 💖 (đang có ${totalCharm})`
       : `${lDetails.currentLevelXp}/${lDetails.requiredXpForNext}`;
   }
   const ghXpBar = document.getElementById("gh-xp-bar");
   if (ghXpBar) {
     ghXpBar.style.width = pct + "%";
-    ghXpBar.style.background = lDetails.charmLocked ? "linear-gradient(90deg,#E91E63,#F06292)" : "";
+    ghXpBar.style.background = lDetails.reincarnationLocked
+      ? "linear-gradient(90deg,#C62828,#E53935)"
+      : lDetails.charmLocked ? "linear-gradient(90deg,#E91E63,#F06292)" : "";
   }
   document.getElementById("gh-panda-icon").textContent = mySpirit ? mySpirit.icon : (lMeta.outfit || "🌱");
 
@@ -4133,17 +4255,47 @@ function updateGamificationUI() {
   document.getElementById("ph-bamboo-count").textContent = `${g.bambooPouch} Cành 🎋`;
   const phXpTextEl = document.getElementById("ph-xp-text");
   if (phXpTextEl) {
-    phXpTextEl.textContent = lDetails.charmLocked
+    phXpTextEl.textContent = lDetails.reincarnationLocked
+      ? `XP đã đầy — ⏳ chờ mua Luân Hồi Đan ⚗️ để lên Level ${lDetails.pendingReincarnationLevel}!`
+      : lDetails.charmLocked
       ? `XP đã đầy — 🔒 cần thêm ${lDetails.charmNeeded - totalCharm} 💖 Mị Lực để lên Level ${lDetails.level + 1}!`
       : `${lDetails.currentLevelXp} / ${lDetails.requiredXpForNext} XP`;
-    phXpTextEl.style.color = lDetails.charmLocked ? "#D81B60" : "";
-    phXpTextEl.style.fontWeight = lDetails.charmLocked ? "800" : "";
+    phXpTextEl.style.color = lDetails.reincarnationLocked ? "#C62828" : lDetails.charmLocked ? "#D81B60" : "";
+    phXpTextEl.style.fontWeight = (lDetails.reincarnationLocked || lDetails.charmLocked) ? "800" : "";
   }
   const phXpBarInner = document.getElementById("ph-xp-bar-inner");
   if (phXpBarInner) {
     phXpBarInner.style.width = pct + "%";
-    phXpBarInner.style.background = lDetails.charmLocked ? "linear-gradient(90deg,#E91E63,#F06292)" : "";
+    phXpBarInner.style.background = lDetails.reincarnationLocked
+      ? "linear-gradient(90deg,#C62828,#E53935)"
+      : lDetails.charmLocked ? "linear-gradient(90deg,#E91E63,#F06292)" : "";
   }
+
+  /* Banner + nút "⚗️ Mua Luân Hồi Đan" khi đang bị khóa chờ Luân Hồi */
+  const reincBanner = document.getElementById("ph-reincarnation-banner");
+  const reincTextEl = document.getElementById("ph-reincarnation-text");
+  const reincBarEl = document.getElementById("ph-reincarnation-bar");
+  if (reincBanner) {
+    if (lDetails.reincarnationLocked) {
+      reincBanner.style.display = "block";
+      const reincPct = Math.min(100, Math.round((g.bambooPouch / REINCARNATION_COST) * 100));
+      if (reincTextEl) reincTextEl.textContent = `⏳ Cần Luân Hồi để lên Level ${lDetails.pendingReincarnationLevel}! Đã tích ${g.bambooPouch}/${REINCARNATION_COST} 🎋`;
+      if (reincBarEl) reincBarEl.style.width = reincPct + "%";
+    } else {
+      reincBanner.style.display = "none";
+    }
+  }
+
+  /* Trong lúc "Chờ Luân Hồi", KHÔNG cho phép cho ăn Trúc (phải để dành
+     đủ 300 Trúc mua Luân Hồi Đan trước) — vô hiệu hóa các nút cho ăn. */
+  ["ph-feed-one-btn", "ph-feed-all-btn", "ph-feed-custom-btn", "ph-feed-custom-input"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.disabled = !!lDetails.reincarnationLocked;
+      el.style.opacity = lDetails.reincarnationLocked ? "0.5" : "";
+      el.style.cursor = lDetails.reincarnationLocked ? "not-allowed" : "";
+    }
+  });
   document.getElementById("ph-outfit-badge").textContent = lMeta.outfit;
   
   const aura = document.getElementById("ph-aura-ring");
@@ -4342,7 +4494,7 @@ function buyShopItem(item) {
 function openTransformModal() {
   const g = state.gamification;
   if (!g) return;
-  const lDetails = calcLevelDetails(g.totalXp || 0, getTotalCharm(g));
+  const lDetails = calcLevelDetails(g.totalXp || 0, getTotalCharm(g), g.reincarnationCount || 0);
   if (lDetails.level < SPIRIT_ANIMAL_REQUIRED_LEVEL) {
     return alert(`Chỉ Gấu Trúc đạt Level ${SPIRIT_ANIMAL_REQUIRED_LEVEL} mới có thể Hóa Hình Linh Thú! Cố gắng tích thêm XP nhé 🎋`);
   }
@@ -4430,6 +4582,103 @@ function selectSpiritAnimal(animalId) {
   renderTransformModal();
   playSound("correct");
   alert(`${isFirstTime ? 'Hóa hình' : 'Đổi Linh Thú'} thành công! Gấu Trúc của bạn giờ là ${animal.icon} ${animal.name} (Level giữ nguyên). Ghé Bảng Xếp Hạng để khoe với cả lớp nhé 🌟`);
+}
+
+/* =========================================================
+   HỆ THỐNG "LUÂN HỒI" (sau Level 30, mỗi 10 Level: 40, 50, 60...)
+   ========================================================= */
+function openReincarnationModal() {
+  const g = state.gamification;
+  if (!g) return;
+  const totalCharm = getTotalCharm(g);
+  const lDetails = calcLevelDetails(g.totalXp || 0, totalCharm, g.reincarnationCount || 0);
+  if (!lDetails.reincarnationLocked) {
+    return alert("Gấu Trúc của bạn hiện không bị khóa Luân Hồi — cứ tiếp tục tích XP nhé! 🎋");
+  }
+  const modal = document.getElementById("reincarnation-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  renderReincarnationModal();
+}
+
+function renderReincarnationModal() {
+  const g = state.gamification;
+  if (!g) return;
+  const totalCharm = getTotalCharm(g);
+  const lDetails = calcLevelDetails(g.totalXp || 0, totalCharm, g.reincarnationCount || 0);
+  const pendingLevel = lDetails.reincarnationLocked ? lDetails.pendingReincarnationLevel : g.pendingReincarnation;
+
+  const noteEl = document.getElementById("reincarnation-note");
+  if (noteEl) {
+    noteEl.innerHTML = pendingLevel
+      ? `📌 Gấu Trúc của bạn đã tích ĐỦ XP để lên <strong>Level ${pendingLevel}</strong>, nhưng đây là một "Ải Luân Hồi"! Cần tích đủ <strong>${REINCARNATION_COST} 🎋 Cành Trúc</strong> rồi mua <strong>Luân Hồi Đan ⚗️</strong> mới được thăng cấp. Lưu ý: các bạn học khác vẫn có thể CƯỚP TRÚC của bạn trong lúc gom góp, nên hãy nhanh tay!`
+      : `📌 Đây là "Ải Luân Hồi" — cứ mỗi ${REINCARNATION_STEP} Level sau Level ${REINCARNATION_START_LEVEL}, Gấu Trúc cần tốn ${REINCARNATION_COST} 🎋 Cành Trúc mua Luân Hồi Đan ⚗️ mới được thăng cấp tiếp.`;
+  }
+
+  const balEl = document.getElementById("reincarnation-bamboo-balance");
+  if (balEl) balEl.textContent = `${g.bambooPouch || 0} 🎋`;
+
+  const pct = Math.min(100, Math.round(((g.bambooPouch || 0) / REINCARNATION_COST) * 100));
+  const barEl = document.getElementById("reincarnation-progress-bar");
+  if (barEl) barEl.style.width = pct + "%";
+  const progTextEl = document.getElementById("reincarnation-progress-text");
+  if (progTextEl) progTextEl.textContent = `${Math.min(g.bambooPouch || 0, REINCARNATION_COST)}/${REINCARNATION_COST} 🎋`;
+
+  const buyBtn = document.getElementById("buy-reincarnation-btn");
+  if (buyBtn) {
+    const canAfford = (g.bambooPouch || 0) >= REINCARNATION_COST;
+    buyBtn.disabled = !canAfford;
+    buyBtn.textContent = canAfford
+      ? `⚗️ Mua Luân Hồi Đan (${REINCARNATION_COST} 🎋)`
+      : `⚗️ Cần thêm ${REINCARNATION_COST - (g.bambooPouch || 0)} 🎋 nữa`;
+  }
+}
+
+function buyReincarnationElixir() {
+  const g = state.gamification;
+  if (!g) return;
+  const totalCharm = getTotalCharm(g);
+  const beforeDetails = calcLevelDetails(g.totalXp || 0, totalCharm, g.reincarnationCount || 0);
+  if (!beforeDetails.reincarnationLocked) {
+    return alert("Bạn hiện không bị khóa Luân Hồi, không cần mua Đan lúc này!");
+  }
+  if ((g.bambooPouch || 0) < REINCARNATION_COST) {
+    return alert(`Bạn chưa đủ Trúc! Cần ${REINCARNATION_COST} 🎋 nhưng chỉ có ${g.bambooPouch || 0} 🎋. Hãy làm thêm bài tập để tích Trúc nhé 🎋`);
+  }
+
+  g.bambooPouch -= REINCARNATION_COST;
+  g.reincarnationCount = (g.reincarnationCount || 0) + 1;
+
+  const newDetails = calcLevelDetails(g.totalXp || 0, totalCharm, g.reincarnationCount);
+  const lMeta = getLevelMetadata(newDetails.level);
+  g.pendingReincarnation = newDetails.reincarnationLocked ? newDetails.pendingReincarnationLevel : null;
+
+  addActivityLog(`🔄 Gấu Trúc của ${state.studentName} vừa LUÂN HỒI THÀNH CÔNG (kiếp thứ ${g.reincarnationCount + 1}), chính thức bước sang Level ${newDetails.level} (${lMeta.title})! Cả lớp cùng chúc mừng! ✨`);
+
+  /* Tái sử dụng modal ăn mừng thăng Level (levelup-modal) để tạo hiệu
+     ứng ăn mừng thay vì chỉ hiện alert đơn thuần. */
+  const lvlEl = document.getElementById("lum-new-level");
+  if (lvlEl) lvlEl.textContent = `LEVEL ${newDetails.level}`;
+  const ttlEl = document.getElementById("lum-new-title");
+  if (ttlEl) ttlEl.textContent = `Kiếp thứ ${g.reincarnationCount + 1} · Danh hiệu: ${lMeta.title} (${lMeta.status})`;
+  const headerEl = document.getElementById("lum-header");
+  if (headerEl) headerEl.textContent = "🔄 LUÂN HỒI THÀNH CÔNG! 🔄";
+  const iconEl = document.getElementById("lum-icon");
+  if (iconEl) iconEl.textContent = "🔄🐼✨";
+  const bonusEl = document.getElementById("lum-rank-bonus");
+  if (bonusEl) {
+    bonusEl.textContent = `Gấu Trúc của bạn bước sang kiếp thứ ${g.reincarnationCount + 1}, tiếp tục hành trình ở Level ${newDetails.level}!`;
+    bonusEl.style.display = "block";
+  }
+
+  const reincModal = document.getElementById("reincarnation-modal");
+  if (reincModal) reincModal.style.display = "none";
+  const modal = document.getElementById("levelup-modal");
+  if (modal) modal.style.display = "flex";
+
+  saveState();
+  updateGamificationUI();
+  playSound("correct");
 }
 
 function openGiftModal(defaultTargetPeer = null) {
@@ -4653,7 +4902,7 @@ function renderStealModal() {
     const me = peers.find(p => p.username === state.username);
     if (me) {
       me.bambooPouch = g.bambooPouch;
-      me.level = calcLevelDetails(g.totalXp, getTotalCharm(g)).level;
+      me.level = calcLevelDetails(g.totalXp, getTotalCharm(g), g.reincarnationCount || 0).level;
     }
   }
 
@@ -4805,19 +5054,28 @@ function feedPanda(amount) {
     return;
   }
   const myCharm = getTotalCharm(g);
-  const currentLevel = calcLevelDetails(g.totalXp, myCharm).level;
+  const reincarnationCount = g.reincarnationCount || 0;
+  const currentLevel = calcLevelDetails(g.totalXp, myCharm, reincarnationCount).level;
   if (currentLevel >= SPIRIT_ANIMAL_REQUIRED_LEVEL && !g.spiritAnimal) {
     alert(`Gấu Trúc đã đạt Level ${SPIRIT_ANIMAL_REQUIRED_LEVEL}! Hãy Hóa Hình Linh Thú trước khi tiếp tục cho ăn Trúc để lên Level nhé 🌟`);
     openTransformModal();
     return;
   }
+  const preFeedDetails = calcLevelDetails(g.totalXp, myCharm, reincarnationCount);
+  if (preFeedDetails.reincarnationLocked) {
+    /* Đang "Chờ Luân Hồi": KHÔNG cho ăn Trúc nữa, bắt buộc phải để dành
+       đủ 300 Trúc mua Luân Hồi Đan trước khi tiếp tục lên Level. */
+    alert(`⏳ Gấu Trúc của bạn đang chờ LUÂN HỒI để lên Level ${preFeedDetails.pendingReincarnationLevel}!\n\nHãy tích đủ ${REINCARNATION_COST} 🎋 Cành Trúc rồi mua Luân Hồi Đan ⚗️ trước khi cho ăn tiếp nhé.`);
+    openReincarnationModal();
+    return;
+  }
   const toFeed = Math.min(amount, g.bambooPouch);
-  const oldDetails = calcLevelDetails(g.totalXp, myCharm);
+  const oldDetails = calcLevelDetails(g.totalXp, myCharm, reincarnationCount);
 
   g.bambooPouch -= toFeed;
   g.totalXp += (toFeed * 10);
 
-  const newDetails = calcLevelDetails(g.totalXp, myCharm);
+  const newDetails = calcLevelDetails(g.totalXp, myCharm, reincarnationCount);
 
   const pEmoji = document.getElementById("ph-panda-emoji");
   if (pEmoji) {
@@ -5138,6 +5396,7 @@ const qzArea = document.getElementById("qz-area");
 let qzQueue = [], qzIdx = 0, qzScore = 0, qzCorrectCount = 0, qzWrongCount = 0;
 
 let qzUseAll = false;
+let qzFullListCount = 0; // tổng số từ có trong list/chủ đề đang chọn (dùng để báo cáo Zalo)
 
 /* Cập nhật gợi ý (tối thiểu / tối đa) và giá trị mặc định của ô nhập số câu
    dựa trên list/chủ đề đang chọn + cấu hình tối thiểu của giáo viên cho list đó. */
@@ -5211,6 +5470,7 @@ function initQuizHandlers() {
       }
     }
     qzQueue = shuffle(words).slice(0, Math.min(countLimit, words.length));
+    qzFullListCount = words.length;
     qzIdx = 0;
     qzScore = 0;
     qzCorrectCount = 0;
@@ -5328,7 +5588,11 @@ function renderQuizResult() {
 
   document.getElementById("qz-again")?.addEventListener("click", () => document.getElementById("qz-start")?.click());
   document.getElementById("qz-zalo")?.addEventListener("click", () => {
-    sendResultToZalo(`🐼 Kết quả Kiểm Tra Từ Vựng\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nĐiểm: ${qzScore}/${qzQueue.length} (${pct}%)`);
+    const qzListLabel = qzTopicSel.options[qzTopicSel.selectedIndex]?.text || qzTopicSel.value;
+    const qzModeLine = qzUseAll
+      ? `Full List — đủ ${qzFullListCount} từ`
+      : `Tách List — làm ${qzQueue.length}/${qzFullListCount} từ`;
+    sendResultToZalo(`🐼 Kết quả Kiểm Tra Từ Vựng\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nChủ đề/List: ${qzListLabel}\nChế độ: ${qzModeLine}\nSố câu đã làm: ${qzQueue.length}\nĐiểm: ${qzScore}/${qzQueue.length} (${pct}%)\nTrúc nhận được: +${rewardAmt} 🎋`);
   });
 }
 
@@ -5342,6 +5606,7 @@ function renderQuizResult() {
 const pyTopicSel = document.getElementById("py-topic");
 const pyArea = document.getElementById("py-area");
 let pyQueue = [], pyIdx = 0, pyCorrectCount = 0, pyWrongCount = 0, pyUseAll = false;
+let pyFullListCount = 0; // tổng số từ có trong list/chủ đề đang chọn (dùng để báo cáo Zalo)
 
 function updatePyCountHint() {
   const countInp = document.getElementById("py-count-input");
@@ -5404,6 +5669,7 @@ function initPinyinTestHandlers() {
       }
     }
     pyQueue = shuffle(words).slice(0, Math.min(countLimit, words.length));
+    pyFullListCount = words.length;
     pyIdx = 0;
     pyCorrectCount = 0;
     pyWrongCount = 0;
@@ -5522,7 +5788,11 @@ function renderPinyinTestResult() {
 
   document.getElementById("py-again")?.addEventListener("click", () => document.getElementById("py-start")?.click());
   document.getElementById("py-zalo")?.addEventListener("click", () => {
-    sendResultToZalo(`🀄 Kết quả Kiểm Tra Pinyin\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nĐiểm: ${pyCorrectCount}/${total} (${pct}%)`);
+    const pyListLabel = pyTopicSel.options[pyTopicSel.selectedIndex]?.text || pyTopicSel.value;
+    const pyModeLine = pyUseAll
+      ? `Full List — đủ ${pyFullListCount} từ`
+      : `Tách List — làm ${total}/${pyFullListCount} từ`;
+    sendResultToZalo(`🀄 Kết quả Kiểm Tra Pinyin\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nChủ đề/List: ${pyListLabel}\nChế độ: ${pyModeLine}\nSố câu đã làm: ${total}\nĐiểm: ${pyCorrectCount}/${total} (${pct}%)\nTrúc nhận được: +${rewardAmt} 🎋`);
   });
 }
 
@@ -5534,6 +5804,7 @@ const tmArea = document.getElementById("tm-area");
 let tmQueue = [], tmIdx = 0, tmTimerId = null, tmAttempts = 1;
 let tmMode = "full";          // "full" | "split"
 let tmSessionWords = [];      // toàn bộ pool của phiên hiện tại (full list hoặc phần đã tách)
+let tmFullListCount = 0;      // tổng số từ có trong list/chủ đề đang chọn (dùng để báo cáo Zalo)
 
 function initTimedHandlers() {
   if (tmTopicSel) {
@@ -5632,6 +5903,7 @@ function renderTimedIdle() {
 
   document.getElementById("tm-start-btn")?.addEventListener("click", () => {
     const chosenMode = tmArea.querySelector('input[name="tm-mode-radio"]:checked')?.value || "full";
+    tmFullListCount = words.length;
     if (chosenMode === "split" && canSplit) {
       let count = parseInt(document.getElementById("tm-split-count")?.value, 10) || minSplit;
       count = Math.max(minSplit, Math.min(words.length, count));
@@ -5771,7 +6043,10 @@ function renderTimedPass() {
 
   document.getElementById("tm-restart-btn")?.addEventListener("click", renderTimedIdle);
   document.getElementById("tm-zalo-btn")?.addEventListener("click", () => {
-    sendResultToZalo(`⚡ Thử Thách Thời Gian${modeLabel}\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nChủ đề: ${listName}\nHoàn thành sau: ${tmAttempts} lượt thử`);
+    const tmModeLine = tmMode === "split"
+      ? `Tách List — làm ${tmSessionWords.length}/${tmFullListCount} từ`
+      : `Full List — đủ ${tmFullListCount} từ`;
+    sendResultToZalo(`⚡ Thử Thách Thời Gian${modeLabel}\nHọc viên: ${state.studentName}\nLớp: ${state.currentClassName}\nChủ đề/List: ${listName}\nChế độ: ${tmModeLine}\nHoàn thành sau: ${tmAttempts} lượt thử\nTrúc nhận được: +${rewardAmt} 🎋`);
   });
 }
 
@@ -6938,6 +7213,13 @@ function renderTransformBadgeHtml(spiritAnimalId) {
   return `<span class="lb-transform-badge aura-${animal.aura}" title="${animal.name}">${animal.icon} ${animal.name}</span>`;
 }
 
+/* Badge "🔄 Luân Hồi xN" hiển thị cạnh tên trên Bảng Xếp Hạng cho học
+   viên đã Luân Hồi thành công ít nhất 1 lần */
+function renderReincarnationBadgeHtml(count) {
+  if (!count || count < 1) return "";
+  return `<span class="lb-reinc-wrap"><span class="lb-reinc-halo"></span><span class="lb-reincarnation-badge" title="Đã Luân Hồi ${count} lần"><span class="lb-reinc-icon">🔄</span> Luân Hồi x${count}</span></span>`;
+}
+
 /* ===== Hào Quang Uy Nghiêm theo Level =====
    Từ Level 30 trở đi, cứ mỗi 10 Level (30, 40, 50...) tăng thêm 1 cấp
    hào quang, xoay vòng qua 8 cấp màu (giống hệ màu Huy Hiệu). Vượt quá
@@ -6977,7 +7259,7 @@ function renderLeaderboardContent() {
   if (mode === "level") {
     const peers = (state.gamification?.peers || []).slice();
     const myCharmLb = getTotalCharm(state.gamification);
-    const lDetails = calcLevelDetails(state.gamification?.totalXp || 0, myCharmLb);
+    const lDetails = calcLevelDetails(state.gamification?.totalXp || 0, myCharmLb, state.gamification?.reincarnationCount || 0);
     const currentLMeta = getLevelMetadata(lDetails.level);
     
     if (state.studentName) {
@@ -6991,6 +7273,8 @@ function renderLeaderboardContent() {
         me.spiritAnimal = state.gamification?.spiritAnimal || "";
         me.charmLocked = lDetails.charmLocked;
         me.charmNeeded = lDetails.charmNeeded;
+        me.reincarnationCount = state.gamification?.reincarnationCount || 0;
+        me.pendingReincarnation = lDetails.reincarnationLocked ? lDetails.pendingReincarnationLevel : null;
       } else {
         peers.push({
           name: state.studentName,
@@ -7001,7 +7285,9 @@ function renderLeaderboardContent() {
           badges: state.gamification?.unlockedBadges || [],
           spiritAnimal: state.gamification?.spiritAnimal || "",
           charmLocked: lDetails.charmLocked,
-          charmNeeded: lDetails.charmNeeded
+          charmNeeded: lDetails.charmNeeded,
+          reincarnationCount: state.gamification?.reincarnationCount || 0,
+          pendingReincarnation: lDetails.reincarnationLocked ? lDetails.pendingReincarnationLevel : null
         });
       }
     }
@@ -7015,19 +7301,26 @@ function renderLeaderboardContent() {
       const isMe = p.name === state.studentName;
       const isTransformed = p.level >= SPIRIT_ANIMAL_REQUIRED_LEVEL && !!p.spiritAnimal;
       const animal = isTransformed ? getSpiritAnimalById(p.spiritAnimal) : null;
+      const isPendingReincarnation = !!p.pendingReincarnation;
       const rankClass = idx === 0 ? "lb-rank-1" : idx === 1 ? "lb-rank-2" : idx === 2 ? "lb-rank-3" : "";
       const levelAuraClass = getLevelAuraRowClass(p.level);
       const medalClass = idx === 0 ? "lb-medal-fire lb-medal-fire-1" : idx === 1 ? "lb-medal-fire lb-medal-fire-2" : idx === 2 ? "lb-medal-fire lb-medal-fire-3" : "";
       const blazeTag = idx === 0 ? `<span class="lb-blaze-tag lb-blaze-1">🔥 HẠNG 1</span>` : idx === 1 ? `<span class="lb-blaze-tag lb-blaze-2">🔥 HẠNG 2</span>` : idx === 2 ? `<span class="lb-blaze-tag lb-blaze-3">🔥 HẠNG 3</span>` : "";
+      /* Học viên đang bị khóa chờ mua Luân Hồi Đan: thay vì "Level X",
+         hiện "⏳ Chờ Luân Hồi (LVX)" kèm số Trúc hiện có/300, để cả lớp
+         biết bạn đó đang "tích của" và có thể... nhòm ngó 👀. */
+      const levelStatusHtml = isPendingReincarnation
+        ? `⏳ Chờ Luân Hồi (LV${p.pendingReincarnation}) · 🎋 ${p.bambooPouch || 0}/${REINCARNATION_COST}`
+        : `Level ${p.level}`;
       html += `
         <div style="position:relative;">
           ${blazeTag}
-          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? 'lb-row-transformed' : ''} ${levelAuraClass} ${rankClass}">
+          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? 'lb-row-transformed' : ''} ${isPendingReincarnation ? 'lb-row-pending-reincarnation' : ''} ${levelAuraClass} ${rankClass}">
             <div style="display:flex; align-items:center; gap:12px;">
               <span style="font-size:24px;" class="${medalClass}">${animal ? animal.icon : medal}</span>
               <div>
-                <strong style="color:var(--seal-dark); font-size:15px;">#${idx + 1} ${p.name} ${isMe ? ' (Bạn)' : ''}${renderBadgeChipsHtml(p.badges)}${renderLightspeedBadgeHtml(p.badges)}${renderLevelAuraTagHtml(p.level)}${animal ? renderTransformBadgeHtml(p.spiritAnimal) : ''}</strong>
-                <div style="font-size:12px; color:var(--ink-soft);">Trạng thái: ${p.outfit} · Level ${p.level}${p.charmLocked ? ` <span style="color:#D81B60; font-weight:800;" title="Đủ XP nhưng thiếu Mị Lực để lên Level tiếp">🔒 cần thêm 💖</span>` : ''}</div>
+                <strong style="color:var(--seal-dark); font-size:15px;">#${idx + 1} ${p.name} ${isMe ? ' (Bạn)' : ''}${renderBadgeChipsHtml(p.badges)}${renderLightspeedBadgeHtml(p.badges)}${renderLevelAuraTagHtml(p.level)}${animal ? renderTransformBadgeHtml(p.spiritAnimal) : ''}${renderReincarnationBadgeHtml(p.reincarnationCount)}</strong>
+                <div style="font-size:12px; color:${isPendingReincarnation ? '#C62828' : 'var(--ink-soft)'}; font-weight:${isPendingReincarnation ? '800' : '400'};">Trạng thái: ${p.outfit} · ${levelStatusHtml}${p.charmLocked ? ` <span style="color:#D81B60; font-weight:800;" title="Đủ XP nhưng thiếu Mị Lực để lên Level tiếp">🔒 cần thêm 💖</span>` : ''}</div>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:14px;">
@@ -7059,6 +7352,7 @@ function renderLeaderboardContent() {
         me.charm = myCharm;
         me.badges = state.gamification?.unlockedBadges || [];
         me.spiritAnimal = state.gamification?.spiritAnimal || "";
+        me.reincarnationCount = state.gamification?.reincarnationCount || 0;
         me.isSelf = true;
       } else {
         peers.push({
@@ -7067,6 +7361,7 @@ function renderLeaderboardContent() {
           charm: myCharm,
           badges: state.gamification?.unlockedBadges || [],
           spiritAnimal: state.gamification?.spiritAnimal || "",
+          reincarnationCount: state.gamification?.reincarnationCount || 0,
           isSelf: true
         });
       }
@@ -7106,7 +7401,7 @@ function renderLeaderboardContent() {
             <div style="display:flex; align-items:center; gap:12px;">
               <span style="font-size:24px;" class="${medalClass}">${animal ? animal.icon : medal}</span>
               <div>
-                <strong style="color:var(--seal-dark); font-size:15px;">#${idx + 1} ${p.name} ${isMe ? ' (Bạn)' : ''}${renderBadgeChipsHtml(p.badges)}${renderLightspeedBadgeHtml(p.badges)}${renderLevelAuraTagHtml(p.level)}${animal ? renderTransformBadgeHtml(p.spiritAnimal) : ''}</strong>
+                <strong style="color:var(--seal-dark); font-size:15px;">#${idx + 1} ${p.name} ${isMe ? ' (Bạn)' : ''}${renderBadgeChipsHtml(p.badges)}${renderLightspeedBadgeHtml(p.badges)}${renderLevelAuraTagHtml(p.level)}${animal ? renderTransformBadgeHtml(p.spiritAnimal) : ''}${renderReincarnationBadgeHtml(p.reincarnationCount)}</strong>
                 <div style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Đạo cụ: ${decoIcons}</div>
               </div>
             </div>
@@ -8427,7 +8722,7 @@ async function generateLeaderboardSummary() {
 
     const enriched = students.map(s => {
       const charm = calcPandaCharm(s.decorations || []) + (s.badgeCharmBonus || 0);
-      const lDetails = calcLevelDetails(s.totalXp || 0, charm);
+      const lDetails = calcLevelDetails(s.totalXp || 0, charm, s.reincarnationCount || 0);
       const timedBadge = getHighestTimedBadgeInfo(s.unlockedBadges || []);
       return {
         name: s.displayName || s.username,
@@ -9157,8 +9452,19 @@ window.addEventListener("DOMContentLoaded", () => {
     if (m) m.style.display = "none";
   });
 
+  document.getElementById("open-reincarnation-btn")?.addEventListener("click", () => {
+    openReincarnationModal();
+  });
+  document.getElementById("close-reincarnation-modal-btn")?.addEventListener("click", () => {
+    const m = document.getElementById("reincarnation-modal");
+    if (m) m.style.display = "none";
+  });
+  document.getElementById("buy-reincarnation-btn")?.addEventListener("click", () => {
+    buyReincarnationElixir();
+  });
+
   /* Close modals on background overlay click */
-  ["gift-modal", "shop-modal", "steal-modal", "levelup-modal", "class-pass-modal", "dictation-pass-modal", "transform-modal"].forEach(id => {
+  ["gift-modal", "shop-modal", "steal-modal", "levelup-modal", "class-pass-modal", "dictation-pass-modal", "transform-modal", "reincarnation-modal"].forEach(id => {
     const modalEl = document.getElementById(id);
     if (modalEl) {
       modalEl.addEventListener("click", (e) => {
