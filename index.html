@@ -1692,7 +1692,7 @@ const SUPABASE_ACTIONS_ = {
   update_account_name: { fn: "update_account_name", params: { username: "p_username", displayName: "p_display_name" } },
   delete_account: { fn: "delete_account", params: { username: "p_username" } },
   get_progress: { fn: "get_progress", params: { username: "p_username" } },
-  save_progress: { fn: "save_progress", params: { username: "p_username", progress: "p_progress", baselinePouch: "p_baseline_pouch", baselineDecorations: "p_baseline_decorations" } },
+  save_progress: { fn: "save_progress", params: { username: "p_username", progress: "p_progress", baselinePouch: "p_baseline_pouch", baselineXp: "p_baseline_xp", baselineBadgeCharm: "p_baseline_badge_charm", baselineDecorations: "p_baseline_decorations", baselineBadges: "p_baseline_badges" } },
   join_class: { fn: "join_class", params: { className: "p_class_name", username: "p_username", displayName: "p_display_name" } },
   get_class_members: { fn: "get_class_members", params: { className: "p_class_name" } },
   remove_class_member: { fn: "remove_class_member", params: { className: "p_class_name", username: "p_username" } },
@@ -2718,10 +2718,22 @@ let _progressSyncTimer = null;
    giáo viên/bạn học nào đã xảy ra ở giữa nữa. */
 let _serverBaselinePouch = null;
 let _serverBaselineDecorations = null;
+let _serverBaselineXp = null;
+let _serverBaselineBadgeCharm = null;
+let _serverBaselineBadges = null;
 function captureServerBaseline_() {
   const g = state.gamification || {};
   _serverBaselinePouch = typeof g.bambooPouch === "number" ? g.bambooPouch : 0;
   _serverBaselineDecorations = Array.isArray(g.decorations) ? g.decorations.slice() : [];
+  /* FIX: totalXp/badgeCharmBonus/unlockedBadges bị đúng LỖI CÙNG LỚP với
+     Trúc và đạo cụ — chúng cũng có thể bị giáo viên cộng qua award_badge
+     (chạy atomic trên server) đúng lúc học viên có 1 lượt save_progress
+     đang debounce với snapshot CŨ, ghi đè mất XP/huy hiệu vừa được trao
+     (biểu hiện ra ngoài là "tụt Level" vì Level = f(totalXp,...)).
+     Baseline các trường này để server tự hoà giải giống Trúc/đạo cụ. */
+  _serverBaselineXp = typeof g.totalXp === "number" ? g.totalXp : 0;
+  _serverBaselineBadgeCharm = typeof g.badgeCharmBonus === "number" ? g.badgeCharmBonus : 0;
+  _serverBaselineBadges = Array.isArray(g.unlockedBadges) ? g.unlockedBadges.slice() : [];
 }
 
 function pushProgressToServer() {
@@ -2732,14 +2744,21 @@ function pushProgressToServer() {
       username: state.username,
       progress: captureCurrentProgress(),
       baselinePouch: _serverBaselinePouch,
-      baselineDecorations: _serverBaselineDecorations
+      baselineDecorations: _serverBaselineDecorations,
+      baselineXp: _serverBaselineXp,
+      baselineBadgeCharm: _serverBaselineBadgeCharm,
+      baselineBadges: _serverBaselineBadges
     }).then(res => {
       /* Server trả về giá trị CUỐI CÙNG đã hoà giải xong (bambooPouch,
-         decorations) -> đồng bộ lại state cục bộ + baseline theo đúng bản
-         đó, để lần lưu kế tiếp tính delta đúng, không bị lệch dần. */
+         decorations, totalXp, badgeCharmBonus, unlockedBadges) -> đồng bộ
+         lại state cục bộ + baseline theo đúng bản đó, để lần lưu kế tiếp
+         tính delta đúng, không bị lệch dần. */
       if (res && res.ok && state.gamification) {
         if (typeof res.bambooPouch === "number") state.gamification.bambooPouch = res.bambooPouch;
         if (Array.isArray(res.decorations)) state.gamification.decorations = res.decorations;
+        if (typeof res.totalXp === "number") state.gamification.totalXp = res.totalXp;
+        if (typeof res.badgeCharmBonus === "number") state.gamification.badgeCharmBonus = res.badgeCharmBonus;
+        if (Array.isArray(res.unlockedBadges)) state.gamification.unlockedBadges = res.unlockedBadges;
         captureServerBaseline_();
       }
     });
