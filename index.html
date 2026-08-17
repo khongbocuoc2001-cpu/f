@@ -3525,7 +3525,34 @@ function pushProgressToServer() {
 
 /* Lấy tiến trình mới nhất từ server. Nếu server đã có dữ liệu (vì học
    sinh từng học trên thiết bị khác) -> nạp đè lên state hiện tại.
-   Nếu server chưa có -> đẩy tiến trình local hiện tại lên server. */
+   Nếu server XÁC NHẬN RÕ RÀNG là chưa có (tài khoản hoàn toàn mới) ->
+   đẩy tiến trình local hiện tại lên server.
+
+   FIX LỖI NGHIÊM TRỌNG (mất Hóa Hình + mất XP sau khi vào lại app):
+   Trước đây code chỉ có 1 nhánh if/else, gộp CHUNG 2 trường hợp hoàn
+   toàn khác nhau vào cùng nhánh "else":
+     (a) res.ok=true, found=false -> tài khoản THẬT SỰ mới, server
+         chưa từng có dữ liệu -> đẩy local lên là đúng.
+     (b) res.ok=false -> get_progress THẤT BẠI (mất mạng thoáng qua,
+         server đang bận, lock_timeout...) -> KHÔNG hề có nghĩa là
+         "tài khoản mới"! Nhưng code cũ vẫn coi như (a) và LẬP TỨC gọi
+         save_progress để đẩy state cục bộ (có thể đang là bản RỖNG/
+         MẶC ĐỊNH vì switchToUserProgress() chưa kịp nạp gì, hoặc là
+         bản cũ đã lỗi thời trên máy này) lên server — mà lệnh
+         save_progress này lại KHÔNG gửi kèm baselinePouch/baselineXp/...
+         nên cơ chế cộng dồn theo delta (chống ghi đè) không chạy được,
+         server sẽ GHI ĐÈ THẲNG TAY toàn bộ Trúc/XP/spiritAnimal thật
+         đang có trên server. Đây chính là nguyên nhân học sinh đã hóa
+         hình + tích XP thành công nhưng lần sau mở lại app (đúng lúc
+         get_progress bị trục trặc mạng/server thoáng qua) thì mất
+         sạch cả hóa hình lẫn XP.
+
+   Giờ tách rõ 3 trường hợp: chỉ đẩy local lên khi server XÁC NHẬN
+   found=false; nếu get_progress thất bại (res.ok=false) thì KHÔNG đẩy
+   gì cả, giữ nguyên state cục bộ hiện có (đã được nạp từ
+   studentProgress cache trong switchToUserProgress() nếu có) và báo
+   lỗi ra console để dễ chẩn đoán, tránh nguy cơ ghi đè mất dữ liệu
+   thật trên server. */
 async function syncProgressFromServer() {
   if (!state.username) return;
   const res = await callServer("get_progress", { username: state.username });
@@ -3534,12 +3561,22 @@ async function syncProgressFromServer() {
     sanitizeState(state);
     state.studentProgress[state.username] = captureCurrentProgress();
     captureServerBaseline_(); // FIX: chốt lại baseline Trúc/đạo cụ ngay sau khi nạp bản mới nhất từ server
-  } else {
+  } else if (res && res.ok && res.found === false) {
+    /* Server xác nhận rõ ràng: tài khoản này thật sự chưa có dữ liệu
+       -> an toàn khi đẩy tiến trình local (mặc định) lên server. */
     callServer("save_progress", {
       username: state.username,
       progress: captureCurrentProgress()
     });
     captureServerBaseline_();
+  } else {
+    /* get_progress thất bại (mất mạng, server bận...) — KHÔNG được suy
+       diễn là "tài khoản mới" và KHÔNG được đẩy state cục bộ lên server,
+       vì có nguy cơ ghi đè mất Trúc/XP/Hóa Hình thật đang có trên server.
+       Giữ nguyên state cục bộ hiện tại, không chốt baseline (để lần
+       saveState() kế tiếp không vô tình coi state hiện tại là "đã khớp
+       server"), và log lỗi để dễ chẩn đoán. */
+    console.warn("syncProgressFromServer: get_progress thất bại, giữ nguyên tiến trình cục bộ, KHÔNG đẩy đè lên server.", res);
   }
 }
 
