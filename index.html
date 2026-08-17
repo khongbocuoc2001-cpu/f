@@ -8295,9 +8295,13 @@ function renderQuizResult() {
   state.gamification.counters.quizCount = (state.gamification.counters.quizCount || 0) + 1;
   if (rewardAmt > 0) {
     grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Quiz (${pct}%)`);
-  } else {
-    saveState();
   }
+  /* FIX: grantBamboo() chỉ cộng Trúc vào state cục bộ + cập nhật UI, KHÔNG
+     tự lưu — trước đây saveState() chỉ được gọi ở nhánh rewardAmt===0,
+     khiến Trúc vừa cộng (khi rewardAmt>0) không được lưu xuống localStorage
+     lẫn đẩy lên server, hiện lên UI một lúc rồi mất khi tải lại trang /
+     đồng bộ lại. Giờ luôn gọi saveState() bất kể có Trúc hay không. */
+  saveState();
 
   const rewardLine = rewardAmt > 0
     ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🐼 (+${rewardAmt} Trúc 🎋)`
@@ -8495,9 +8499,11 @@ function renderPinyinTestResult() {
   state.gamification.counters.pinyinTestCount = (state.gamification.counters.pinyinTestCount || 0) + 1;
   if (rewardAmt > 0) {
     grantBamboo(rewardAmt, `Hoàn thành Bài Kiểm Tra Pinyin (${pct}%)`);
-  } else {
-    saveState();
   }
+  /* FIX: giống lỗi ở Kiểm Tra Quiz — grantBamboo() không tự lưu, phải luôn
+     gọi saveState() sau đó dù có Trúc hay không, nếu không Trúc vừa cộng
+     sẽ mất khi tải lại trang / đồng bộ lại. */
+  saveState();
 
   const rewardLine = rewardAmt > 0
     ? `Xuất sắc! Bạn đạt ${pct}% câu trả lời đúng 🀄 (+${rewardAmt} Trúc 🎋)`
@@ -8899,6 +8905,11 @@ function renderWcArea() {
 
     const rewardAmt = getCurrentClassData()?.rewardMatrix?.sentence ?? 15; // FIX: đọc từ cấu hình lớp (đồng bộ), không phải state.gamification cá nhân
     grantBamboo(rewardAmt, "Bài tập Đặt câu");
+    /* FIX: grantBamboo() không tự lưu — trước đây hàm này chuyển thẳng sang
+       gửi Google Sheet mà quên gọi saveState(), khiến Trúc vừa cộng cho bài
+       Đặt Câu không được lưu xuống localStorage/server, mất khi tải lại
+       trang. Gọi saveState() ngay sau khi cộng Trúc. */
+    saveState();
 
     sendAnswerToGoogleSheet({
       activity: "sentence_challenge",
