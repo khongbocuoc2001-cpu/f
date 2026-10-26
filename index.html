@@ -12850,7 +12850,7 @@ function renderLeaderboardContent() {
       html += `
         <div style="position:relative;">
           ${blazeTag}
-          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? (animal.category === 'legendary' ? 'lb-row-legendary-transformed' : 'lb-row-transformed') : ''} ${rowExtraClass} ${levelAuraClass} ${rankClass}">
+          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? (animal.category === 'legendary' ? 'lb-row-legendary-transformed' : 'lb-row-transformed') : ''} ${rowExtraClass} ${levelAuraClass} ${rankClass}${window.XAP?XAP.rowClass(p):''}">
             <div style="display:flex; align-items:center; gap:12px;">
               <span style="font-size:24px;" class="${medalClass}">${animal ? animal.icon : medal}</span>
               <div>
@@ -12946,7 +12946,7 @@ function renderLeaderboardContent() {
       html += `
         <div style="position:relative;">
           ${blazeTag}
-          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? (animal.category === 'legendary' ? 'lb-row-legendary-transformed' : 'lb-row-transformed') : ''} ${(p.level || 0) >= ASCENSION_BASE_LEVEL ? 'lb-row-ascended' : hasTribulation ? 'lb-row-tribulation' : ''} ${levelAuraClass} ${rankClass}">
+          <div style="background:var(--paper); border:2px solid var(--paper-darker); border-radius:16px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;" class="${animal ? (animal.category === 'legendary' ? 'lb-row-legendary-transformed' : 'lb-row-transformed') : ''} ${(p.level || 0) >= ASCENSION_BASE_LEVEL ? 'lb-row-ascended' : hasTribulation ? 'lb-row-tribulation' : ''} ${levelAuraClass} ${rankClass}${window.XAP?XAP.rowClass(p):''}">
             <div style="display:flex; align-items:center; gap:12px;">
               <span style="font-size:24px;" class="${medalClass}">${animal ? animal.icon : medal}</span>
               <div>
@@ -16252,6 +16252,195 @@ window.addEventListener("DOMContentLoaded", () => {
 })();
 </script>
 
+<!-- ============ XÀ PHU (26/10): sao thứ 13 — giao diện huyền ảo, thông báo hiến tế (thành công / thất bại), hiệu ứng riêng trên Bảng Xếp Hạng ============
+     Module độc lập. Người sở hữu Xà Phu mang huy hiệu "xaphu_13" trong gamification.unlockedBadges (server ghi khi hiến tế trúng, MỤC 26.1),
+     nên đi theo roster có sẵn, KHÔNG tốn thêm lệnh gọi. Muốn gỡ: xoá khối script id="xaphu-js" này (chomsao-js tự dùng giao diện cũ). -->
+<script id="xaphu-js">
+(function(){
+  "use strict";
+  var BID="xaphu_13";
+  function has(b){ return Array.isArray(b) && b.indexOf(BID)>=0; }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  /* Huy hiệu nhỏ cạnh tên trên Bảng Xếp Hạng */
+  function badge(){
+    return '<span class="xap" title="'+esc("Xà Phu — sao thứ 13, chỉ có được bằng cách hiến tế Bọ Cạp. Chủ nhân có 4 lượt quay sao miễn phí mỗi ngày.")+'">'+
+      '<span class="xap-orb"><span class="xap-g">⛎\uFE0E</span></span><span class="xap-n">Xà Phu</span>'+
+      '<i class="xap-sp xap-sp1"></i><i class="xap-sp xap-sp2"></i><i class="xap-sp xap-sp3"></i></span>';
+  }
+  function rowClass(p){ try{ return (p && has(p.badges)) ? " lb-row-xaphu" : ""; }catch(e){ return ""; } }
+  /* Cập nhật ngay trên máy mình sau khi hiến tế trúng */
+  function applyLocal(){
+    try{
+      var g=state&&state.gamification; if(!g) return;
+      var a=Array.isArray(g.unlockedBadges)?g.unlockedBadges:[];
+      if(a.indexOf(BID)<0) g.unlockedBadges=a.concat([BID]);
+      if(typeof saveState==="function") saveState();
+    }catch(e){}
+  }
+
+  /* ---- Bảng Xếp Hạng: bọc thêm hook renderDebtTagHtml_ (huy hiệu Xà Phu đứng đầu các tag cạnh tên) ---- */
+  var _prev=window.renderDebtTagHtml_;
+  window.renderDebtTagHtml_=function(p){
+    var h=""; try{ if(typeof _prev==="function") h=_prev.apply(this,arguments)||""; }catch(e){}
+    try{ if(p && has(p.badges)) h=badge()+h; }catch(e){}
+    return h;
+  };
+
+  /* ---- Bảng điều khiển Xà Phu trong Kho sao ---- */
+  var SKY=(function(){ var s='<div class="xap-sky">'; for(var i=0;i<26;i++){ s+='<i style="left:'+((i*37+11)%100)+'%;top:'+((i*53+7)%100)+'%;animation-delay:'+(((i*7)%30)/10).toFixed(1)+'s;--z:'+(1+(i%3)*.5)+'"></i>'; } return s+'</div>'; })();
+  /* Chòm Xà Phu: người cầm rắn. Các điểm sao nối bằng đường mảnh, mỗi sao nhấp nháy lệch pha. */
+  var PTS=[[130,16],[104,42],[156,42],[76,72],[184,72],[118,86],[142,86],[98,122],[162,122],[84,146],[176,146]];
+  var LINES=[[0,1],[0,2],[1,3],[2,4],[1,5],[2,6],[5,6],[5,7],[6,8],[7,9],[8,10]];
+  var CONST=(function(){
+    var s='<svg class="xap-const" viewBox="0 0 260 160" aria-hidden="true"><defs><linearGradient id="xapG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE082"/><stop offset="1" stop-color="#B388FF"/></linearGradient></defs>';
+    s+='<path class="xap-snake" d="M20 120 C60 70 90 150 130 100 C170 50 200 140 240 80" fill="none" stroke="url(#xapG)" stroke-width="2.2" stroke-linecap="round"/>';
+    LINES.forEach(function(l){ var a=PTS[l[0]],b=PTS[l[1]]; s+='<line class="xap-ln" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>'; });
+    PTS.forEach(function(p,i){ s+='<circle class="xap-st" cx="'+p[0]+'" cy="'+p[1]+'" r="'+(i===0?4.2:3)+'" style="animation-delay:'+(i*0.27).toFixed(2)+'s"/>'; });
+    return s+'</svg>';
+  })();
+  function panel(m){
+    var own=!!m.own, sc=m.sc|0, pity=Math.min(m.pity|0,10), i, segs="";
+    for(i=1;i<=10;i++) segs+='<i class="'+(i<=pity?'on':'')+'"></i>';
+    var h='<div class="cs-sub cs-xa xap-panel'+(own?' xap-own':'')+'">'+SKY;
+    h+='<div class="xap-stage">'+CONST+'<span class="xap-ring"></span><span class="xap-ring xap-ring2"></span><span class="xap-core">⛎\uFE0E</span></div>';
+    h+='<div class="xap-title">Xà Phu</div><div class="xap-tag">Sao thứ 13 · Vị Thần Y bị lãng quên</div>';
+    h+='<div class="xap-lore">Xà Phu (Ophiuchus) ngự giữa <b>Bọ Cạp</b> và <b>Nhân Mã</b>; Mặt Trời đi qua vùng trời này từ 30/11 đến 17/12. Chủ nhân <b>vĩnh viễn</b> có thêm <b>1 lượt quay sao miễn phí mỗi ngày</b> (3 → 4) và một <b>hào quang riêng trên Bảng Xếp Hạng</b>. Xà Phu không quay ra được, không chế được, không bán chợ và không thuộc bộ 12 sao.</div>';
+    if(own){
+      h+='<div class="xap-own-seal">⛎\uFE0E Bạn đã thức tỉnh <b>Xà Phu</b> — mỗi ngày có <b>4</b> lượt quay sao miễn phí, tên bạn tỏa hào quang trên Bảng Xếp Hạng.</div>';
+    } else {
+      h+='<div class="xap-lore">Cách duy nhất: <b>hiến tế 1 sao Bọ Cạp</b> ♏\uFE0E — <b>10%</b> thức tỉnh Xà Phu. Mỗi lần hiến tế đều mất 1 Bọ Cạp, kể cả khi trượt. Bảng Tin luôn báo kết quả, trúng hay trượt.</div>';
+      h+='<div class="xap-stats"><span>♏\uFE0E Bọ Cạp khả dụng: <b>'+sc+'</b></span><span>🛡️ Bảo hiểm: <b>'+pity+'/10</b></span></div>';
+      h+='<div class="xap-pity" title="Trượt 10 lần liên tiếp thì lần thứ 11 chắc chắn ra">'+segs+'</div>';
+      h+='<div class="xap-lore xap-pl">'+(pity>=10?'✨ Lần hiến tế tới <b>CHẮC CHẮN</b> thức tỉnh Xà Phu!':'Trượt đủ 10 lần liên tiếp thì lần thứ 11 chắc chắn ra.')+'</div>';
+      h+='<div class="cs-row"><button class="btn btn-ok xap-btn" data-cs="sac"'+(sc<1||m.busy?' disabled':'')+'>🔥 Hiến tế 1 Bọ Cạp'+(sc<1?' (chưa có Bọ Cạp)':'')+'</button></div>';
+    }
+    return h+'</div>';
+  }
+
+  /* ---- Màn thông báo hiến tế: hiện cho CẢ trúng lẫn trượt ---- */
+  function ceremony(r){
+    var hit=!!(r&&r.hit), pity=Math.min((r&&r.pity)|0,10), i, ps="", segs="";
+    var old=document.getElementById("xap-cer"); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    for(i=0;i<30;i++) ps+='<i style="--a:'+Math.round(i*360/30)+'deg;--d:'+(90+((i*41)%110))+'px;animation-delay:'+((i%5)*0.05).toFixed(2)+'s"></i>';
+    for(i=1;i<=10;i++) segs+='<i class="'+(i<=pity?'on':'')+'"></i>';
+    var d=document.createElement("div"); d.id="xap-cer"; d.className="xap-cer "+(hit?"xap-hit":"xap-miss");
+    d.innerHTML='<div class="xap-cer-box" role="alertdialog" aria-live="assertive"><div class="xap-cer-fx">'+ps+'</div>'+
+      '<div class="xap-cer-ico">'+(hit?'⛎\uFE0E':'🦂')+'</div>'+
+      '<div class="xap-cer-title">'+(hit?'XÀ PHU THỨC TỈNH!':'Hiến tế thất bại')+'</div>'+
+      '<div class="xap-cer-txt">'+(hit
+        ? 'Sao thứ 13 đã đáp lại lời cầu nguyện của bạn. Từ nay bạn có <b>4 lượt quay sao miễn phí mỗi ngày</b>, và tên bạn tỏa hào quang Xà Phu trên Bảng Xếp Hạng.'
+        : 'Bọ Cạp đã tan thành tro bụi, Xà Phu vẫn chìm trong màn đêm. Bạn <b>không mất công vô ích</b>: bảo hiểm đã tăng lên.')+'</div>'+
+      (hit?'':'<div class="xap-pity xap-cer-pity">'+segs+'</div><div class="xap-cer-pn">Bảo hiểm <b>'+pity+'/10</b>'+(pity>=10?' — lần hiến tế tới <b>chắc chắn</b> ra Xà Phu!':'')+'</div>')+
+      '<div class="xap-cer-note">'+(hit?'🔔 Bảng Tin của lớp đã báo tin vui.':'🔔 Bảng Tin của lớp vẫn ghi lại lần hiến tế này.')+'</div>'+
+      '<button type="button" class="xap-cer-x">'+(hit?'Tuyệt vời!':'Đã hiểu')+'</button></div>';
+    d.addEventListener("click",function(e){ var t=e.target; if(t===d||(t.className||"")==="xap-cer-x"){ if(d.parentNode) d.parentNode.removeChild(d); } });
+    document.body.appendChild(d);
+  }
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ var x=document.getElementById("xap-cer"); if(x&&x.parentNode) x.parentNode.removeChild(x); } });
+
+  window.XAP={BID:BID,has:has,badge:badge,rowClass:rowClass,applyLocal:applyLocal,panel:panel,ceremony:ceremony};
+
+  /* ---- CSS ---- */
+  var css=document.createElement("style"); css.id="xaphu-css";
+  css.textContent=`
+  /* huy hiệu cạnh tên */
+  .xap{position:relative;display:inline-flex;align-items:center;gap:.5em;margin-left:6px;padding:.22em .95em .22em .38em;border-radius:999px;font-size:11px;font-weight:900;line-height:1.2;color:#fff;vertical-align:middle;white-space:nowrap;overflow:hidden;isolation:isolate;
+    background:linear-gradient(120deg,#1A0B3D,#5E35B1 45%,#00BFA5);background-size:220% 100%;animation:xapFlow 5s linear infinite;text-shadow:0 1px 2px rgba(0,0,0,.6);
+    box-shadow:0 0 0 1.5px rgba(255,224,130,.9) inset,0 0 0 3px rgba(179,136,255,.45),0 0 14px 2px rgba(124,77,255,.8);}
+  .xap .xap-orb{position:relative;width:1.9em;height:1.9em;flex:none;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 32% 28%,#fff 0,#FFE082 38%,#B388FF 100%);box-shadow:0 0 0 1.5px #fff,0 0 10px rgba(255,224,130,.95);}
+  .xap .xap-orb::before{content:'';position:absolute;inset:-.24em;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0,rgba(255,255,255,.95) 12%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 1px));mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 1px));animation:xapSpin 2.6s linear infinite;}
+  .xap .xap-g{position:relative;font-size:1.3em;line-height:1;font-weight:900;color:#311B92;text-shadow:none;font-family:'Segoe UI Symbol','Noto Sans Symbols','Apple Symbols',system-ui,sans-serif;}
+  .xap .xap-n{position:relative;letter-spacing:.4px;}
+  .xap::after{content:'';position:absolute;top:0;bottom:0;left:0;width:36%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:translateX(-170%) skewX(-18deg);animation:xapSweep 3.6s ease-in-out infinite;pointer-events:none;}
+  .xap .xap-sp{position:absolute;width:.34em;height:.34em;border-radius:50%;background:#fff;opacity:0;box-shadow:0 0 6px 1px rgba(255,255,255,.95);animation:xapTw 2.4s ease-in-out infinite;}
+  .xap .xap-sp1{right:.55em;top:.18em;}.xap .xap-sp2{right:1.7em;bottom:.12em;animation-delay:.8s;}.xap .xap-sp3{right:.18em;bottom:.5em;animation-delay:1.6s;}
+  /* dòng Bảng Xếp Hạng của chủ nhân Xà Phu */
+  .lb-row-xaphu.lb-row-xaphu{position:relative;overflow:hidden;border-color:#B388FF !important;color:#EDE7F6;
+    background:radial-gradient(120% 140% at 12% 0%,rgba(0,229,200,.28),transparent 55%),radial-gradient(120% 140% at 100% 100%,rgba(255,213,79,.22),transparent 55%),linear-gradient(135deg,#150B2E,#2B1457 48%,#0B2A47) !important;
+    background-size:100% 100%,100% 100%,220% 220% !important;
+    box-shadow:0 0 0 1px rgba(255,224,130,.55),0 0 16px 4px rgba(124,77,255,.55),0 0 34px 8px rgba(0,229,200,.22) !important;
+    animation:xapAurora 9s ease-in-out infinite,xapRowGlow 3.4s ease-in-out infinite;}
+  .lb-row-xaphu.lb-row-xaphu strong,.lb-row-xaphu.lb-row-xaphu .lb-pending-status-text,.lb-row-xaphu.lb-row-xaphu .lb-pending-xp-text{color:#F3E8FF !important;text-shadow:0 0 8px rgba(179,136,255,.9);}
+  .lb-row-xaphu.lb-row-xaphu .lb-pending-truc-text{color:#B9F6CA !important;}
+  .lb-row-xaphu.lb-row-xaphu .xap,.lb-row-xaphu.lb-row-xaphu .sbm{text-shadow:0 1px 2px rgba(0,0,0,.6);}
+  /* bảng Xà Phu trong Kho sao — v2: nền đêm sâu, chữ tương phản cao (ghi đè #cs-root .cs-xa của Kho sao bằng độ ưu tiên cao hơn) */
+  #cs-root .cs-sub.cs-xa.xap-panel{position:relative;overflow:hidden;text-align:center;margin-top:14px;padding:22px 16px 20px;border:1px solid rgba(214,188,250,.38);border-top:1px solid rgba(214,188,250,.38);border-radius:22px;color:#F1EAFB;
+    background:radial-gradient(70% 55% at 50% 0%,rgba(112,64,214,.42),transparent 70%),radial-gradient(60% 40% at 50% 105%,rgba(40,170,160,.16),transparent 70%),linear-gradient(175deg,#07030F 0%,#12082B 55%,#080F26 100%);
+    box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 36px -8px rgba(80,40,170,.7),inset 0 0 60px rgba(0,0,0,.55);}
+  #cs-root .cs-sub.cs-xa.xap-panel::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%);}
+  #cs-root .cs-sub.cs-xa.xap-panel.xap-own{border-color:rgba(255,217,138,.75);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 30px 2px rgba(255,200,90,.28),0 10px 40px -8px rgba(80,40,170,.8),inset 0 0 60px rgba(0,0,0,.5);}
+  #cs-root .cs-sub.cs-xa.xap-panel>*{position:relative;z-index:1;}
+  #cs-root .cs-sub.cs-xa.xap-panel>.xap-sky{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.55;}
+  .xap-sky i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.2;box-shadow:0 0 4px 1px rgba(255,255,255,.7);transform:scale(var(--z,1));animation:xapTw 3.6s ease-in-out infinite;}
+  .xap-stage{position:relative;width:min(280px,80%);aspect-ratio:260/160;margin:0 auto 6px;}
+  .xap-const{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 5px rgba(150,110,255,.8));}
+  .xap-ln{stroke:rgba(200,180,255,.5);stroke-width:1;stroke-dasharray:3 4;animation:xapDash 8s linear infinite;}
+  .xap-st{fill:#FFF3C9;stroke:#F2C75C;stroke-width:1.2;animation:xapStar 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center;}
+  .xap-snake{stroke-dasharray:6 7;animation:xapDash 5s linear infinite;opacity:.6;}
+  .xap-ring{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:1;margin:-31% 0 0 -31%;border-radius:50%;border:1px dashed rgba(242,199,92,.4);animation:xapSpin 30s linear infinite;pointer-events:none;}
+  .xap-ring2{width:84%;margin:-42% 0 0 -42%;border-color:rgba(94,230,208,.35);animation-duration:46s;animation-direction:reverse;}
+  .xap-core{position:absolute;left:50%;top:50%;width:2.3em;height:2.3em;margin:-1.15em 0 0 -1.15em;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:#2A1470;
+    background:radial-gradient(circle at 32% 28%,#fff,#F7DE96 45%,#A98BEF);box-shadow:0 0 14px 3px rgba(247,222,150,.5),0 0 34px 8px rgba(112,64,214,.55);animation:xapBreathe 4s ease-in-out infinite;font-family:'Segoe UI Symbol','Noto Sans Symbols','Apple Symbols',system-ui,sans-serif;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-title{font-family:'Baloo 2','Quicksand',system-ui,sans-serif;font-size:30px;line-height:1.2;font-weight:800;letter-spacing:7px;text-indent:7px;color:#FBE7AE;background:none;-webkit-text-fill-color:#FBE7AE;animation:none;filter:none;text-shadow:0 0 18px rgba(255,214,120,.38),0 2px 3px rgba(0,0,0,.7);}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-tag{font-size:13px;font-weight:700;letter-spacing:1px;color:#CDBDF0;margin:2px 0 14px;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-lore{font-size:14.5px;line-height:1.75;font-weight:600;color:#EDE6F9;text-align:left;text-shadow:none;margin:10px auto 0;max-width:540px;padding:12px 15px;border-radius:14px;background:rgba(6,2,18,.62);border:1px solid rgba(190,160,255,.18);}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-lore b{color:#FFD98A;font-weight:800;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-own-seal{margin:14px auto 2px;max-width:540px;padding:12px 15px;border-radius:14px;font-size:14.5px;line-height:1.65;font-weight:700;text-align:left;color:#FFF3D0;background:linear-gradient(120deg,rgba(255,200,90,.22),rgba(120,70,220,.28));border:1px solid rgba(255,217,138,.6);animation:none;box-shadow:none;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-own-seal b{color:#FFD98A;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;font-size:13.5px;font-weight:700;color:#EDE6F9;margin:14px 0 6px;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-stats span{padding:6px 13px;border-radius:999px;background:rgba(6,2,18,.7);border:1px solid rgba(190,160,255,.32);}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-stats b{color:#FFD98A;font-size:15px;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-pity{display:flex;gap:5px;justify-content:center;margin:8px 0 6px;}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-pity i{width:24px;height:9px;border-radius:99px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(200,180,255,.38);}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-pity i.on{background:linear-gradient(90deg,#F7D77A,#B994FF);box-shadow:0 0 8px rgba(247,215,122,.7);}
+  #cs-root .cs-sub.cs-xa.xap-panel .xap-lore.xap-pl{font-size:13.5px;text-align:center;background:none;border:0;padding:2px 8px;color:#CDBDF0;margin-top:2px;}
+  #cs-root .cs-sub.cs-xa.xap-panel .cs-row{justify-content:center;margin:14px 0 2px;}
+  #cs-root .xap-panel .xap-btn{min-height:46px;padding:11px 24px;border-radius:999px;font-size:15px;font-weight:800;letter-spacing:.3px;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.6);background:linear-gradient(135deg,#7A46E0,#4A2A9E) !important;background-size:100% 100% !important;border:1.5px solid #F2D58A !important;animation:none !important;box-shadow:0 0 18px rgba(122,70,224,.65),inset 0 1px 0 rgba(255,255,255,.25);}
+  #cs-root .xap-panel .xap-btn:hover:not(:disabled){filter:brightness(1.12);}
+  #cs-root .xap-panel .xap-btn:focus-visible{outline:3px solid #FFD98A;outline-offset:3px;}
+  #cs-root .xap-panel .xap-btn:disabled{opacity:1 !important;color:#D8CCF2 !important;background:#1E1438 !important;border:1.5px dashed rgba(214,188,250,.5) !important;box-shadow:none;text-shadow:none;cursor:not-allowed;}
+  @media (max-width:480px){#cs-root .cs-sub.cs-xa.xap-panel{padding:18px 12px 16px;}#cs-root .cs-sub.cs-xa.xap-panel .xap-title{font-size:26px;letter-spacing:5px;text-indent:5px;}#cs-root .cs-sub.cs-xa.xap-panel .xap-lore{font-size:14px;padding:11px 12px;}}
+  /* màn thông báo hiến tế */
+  .xap-cer{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(6,2,18,.82);backdrop-filter:blur(3px);animation:xapFade .3s ease both;}
+  .xap-cer-box{position:relative;overflow:hidden;width:min(420px,100%);text-align:center;padding:26px 20px 18px;border-radius:24px;color:#EDE7F6;
+    background:radial-gradient(100% 70% at 50% 0%,rgba(124,77,255,.6),transparent 70%),linear-gradient(170deg,#0D0620,#1D0F45 60%,#0A1F3D);border:2px solid #B388FF;box-shadow:0 0 40px 8px rgba(124,77,255,.6);animation:xapPop .5s cubic-bezier(.2,1.3,.4,1) both;}
+  .xap-hit .xap-cer-box{border-color:#FFD54F;box-shadow:0 0 50px 12px rgba(255,213,79,.6),0 0 90px 20px rgba(124,77,255,.5);}
+  .xap-miss .xap-cer-box{border-color:#7E57C2;background:radial-gradient(100% 70% at 50% 0%,rgba(120,60,60,.45),transparent 70%),linear-gradient(170deg,#120A1E,#1B1233 60%,#0C1626);box-shadow:0 0 30px 4px rgba(94,53,177,.5);}
+  .xap-cer-fx{position:absolute;left:50%;top:78px;width:0;height:0;pointer-events:none;}
+  .xap-cer-fx i{position:absolute;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:#FFE082;box-shadow:0 0 8px 2px rgba(255,224,130,.95);opacity:0;animation:xapBurst 1.4s ease-out both;}
+  .xap-miss .xap-cer-fx i{background:#9575CD;box-shadow:0 0 6px 1px rgba(149,117,205,.8);animation-name:xapAsh;}
+  .xap-cer-ico{position:relative;font-size:64px;line-height:1;margin-bottom:8px;animation:xapBreathe 3s ease-in-out infinite;font-family:'Segoe UI Symbol','Noto Sans Symbols','Apple Symbols',system-ui,sans-serif;}
+  .xap-hit .xap-cer-ico{color:#FFE082;text-shadow:0 0 22px rgba(255,224,130,.95),0 0 46px rgba(124,77,255,.9);}
+  .xap-miss .xap-cer-ico{filter:grayscale(.7) drop-shadow(0 0 10px rgba(149,117,205,.8));animation:none;opacity:.9;}
+  .xap-cer-title{position:relative;font-size:24px;font-weight:900;letter-spacing:2px;margin-bottom:8px;color:#fff;}
+  .xap-hit .xap-cer-title{background:linear-gradient(90deg,#FFE082,#fff,#80DEEA,#FFE082);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:xapFlow 3s linear infinite;}
+  .xap-cer-txt{position:relative;font-size:15px;line-height:1.7;font-weight:600;color:#F1EAFB;}
+  .xap-cer-txt b,.xap-cer-pn b{color:#FFD98A;}
+  .xap-cer-pity{margin:12px 0 4px;}.xap-cer-pn{font-size:13px;color:#D1C4E9;}
+  .xap-cer-note{position:relative;margin-top:12px;font-size:13px;font-weight:600;color:#CDBDF0;}
+  .xap-cer-x{position:relative;margin-top:14px;padding:9px 26px;border-radius:999px;border:2px solid #FFE082;font:inherit;font-weight:900;color:#fff;cursor:pointer;background:linear-gradient(120deg,#5E35B1,#7C4DFF,#00BFA5);box-shadow:0 0 14px rgba(124,77,255,.8);}
+  @keyframes xapSpin{to{transform:rotate(360deg);}}
+  @keyframes xapFlow{to{background-position:220% 0;}}
+  @keyframes xapSweep{0%,55%{transform:translateX(-170%) skewX(-18deg);}100%{transform:translateX(440%) skewX(-18deg);}}
+  @keyframes xapTw{0%,100%{opacity:.05;transform:scale(.3);}50%{opacity:1;transform:scale(1);}}
+  @keyframes xapStar{0%,100%{opacity:.55;transform:scale(.8);}50%{opacity:1;transform:scale(1.35);}}
+  @keyframes xapDash{to{stroke-dashoffset:-120;}}
+  @keyframes xapBreathe{0%,100%{transform:scale(1);filter:brightness(1);}50%{transform:scale(1.08);filter:brightness(1.2);}}
+  @keyframes xapAurora{0%,100%{background-position:0 0,0 0,0% 50%;}50%{background-position:0 0,0 0,100% 50%;}}
+  @keyframes xapRowGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.12);}}
+  @keyframes xapFade{from{opacity:0;}to{opacity:1;}}
+  @keyframes xapPop{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:none;}}
+  @keyframes xapBurst{0%{opacity:1;transform:rotate(var(--a)) translateX(0) scale(1);}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--d)) scale(.3);}}
+  @keyframes xapAsh{0%{opacity:.9;transform:rotate(var(--a)) translateX(0);}100%{opacity:0;transform:rotate(var(--a)) translateX(calc(var(--d) * .5)) translateY(40px);}}
+  @media (prefers-reduced-motion:reduce){.xap,.xap .xap-orb::before,.xap::after,.xap .xap-sp,.lb-row-xaphu.lb-row-xaphu,.xap-sky i,.xap-ln,.xap-st,.xap-snake,.xap-ring,.xap-core,.xap-title,.xap-own-seal,#cs-root .xap-btn,.xap-cer-ico,.xap-cer-title,.xap-cer-fx i{animation:none !important;}.xap .xap-sp{opacity:.85;}}
+  `;
+  document.head.appendChild(css);
+})();
+</script>
+
+
+
 <!-- ============ CHÒM SAO (05/10): vòng quay 12 sao + kho + Bụi Sao + đổi vé + chợ sao ============
      Module độc lập, KHÔNG sửa module thẻ bài (thebai-js). Nhận trạng thái sao từ chính kết quả card_get_state
      (bọc callServer, không thêm lệnh gọi). Chợ chỉ tải khi mở tab Chợ / bấm Làm mới / mỗi 45 giây khi tab đang hiển thị.
@@ -16262,7 +16451,8 @@ window.addEventListener("DOMContentLoaded", () => {
   var STARS=[null,
     {n:"Bạch Dương",i:"♈"},{n:"Kim Ngưu",i:"♉"},{n:"Song Tử",i:"♊"},{n:"Cự Giải",i:"♋"},
     {n:"Sư Tử",i:"♌"},{n:"Xử Nữ",i:"♍"},{n:"Thiên Bình",i:"♎"},
-    {n:"Bọ Cạp",i:"♏"},{n:"Nhân Mã",i:"♐"},{n:"Ma Kết",i:"♑"},{n:"Bảo Bình",i:"♒"},{n:"Song Ngư",i:"♓"}];
+    {n:"Bọ Cạp",i:"♏"},{n:"Nhân Mã",i:"♐"},{n:"Ma Kết",i:"♑"},{n:"Bảo Bình",i:"♒"},{n:"Song Ngư",i:"♓"},
+    {n:"Xà Phu",i:"⛎"}];   /* 26/10: sao thứ 13 — chỉ có bằng cách hiến tế Bọ Cạp, nằm ngoài bộ 12 sao */
   var TIER={
     c:{label:"Thường",   floor:100,dust:1,craft:15, cls:"cs-c"},
     r:{label:"Hiếm",     floor:200,dust:3,craft:40, cls:"cs-r"},
@@ -16277,7 +16467,7 @@ window.addEventListener("DOMContentLoaded", () => {
     no_duplicates:"Bạn chưa có sao trùng nào để tán (sao đang treo bán được giữ lại).",already_have:"Bạn đang có sao này rồi, chỉ chế được sao còn thiếu.",
     not_enough_dust:"Chưa đủ Bụi Sao.",week_limit:"Tuần này bạn đã đổi đủ 2 bộ 12 sao (tuần tính từ thứ Hai đến Chủ nhật). 12 sao chưa bị trừ.",
     tickets_full:"Bạn đang cầm đủ 2 vé, hãy dùng bớt rồi đổi tiếp. 12 sao chưa bị trừ.",missing_stars:"Chưa đủ 12 loại sao (sao đang treo bán không tính).",max_level:"Sao Bản Mệnh đã đạt cấp tối đa.",no_destiny:"Bạn cần chọn Sao Bản Mệnh trước.",
-    already_owned:"Bạn đã có Ngọc Bội Ngũ Hành, hãy chọn Vé Mở Thẻ.",no_ticket:"Bạn không có vé loại này.",bag_full:"Túi thẻ đã đầy, hãy dùng hoặc bỏ 1 thẻ rồi dùng vé.",
+    no_scorpion:"Bạn không có sao Bọ Cạp khả dụng để hiến tế (sao đang treo bán bị khóa).",already_xaphu:"Bạn đã sở hữu sao Xà Phu rồi, không cần hiến tế nữa.",already_owned:"Bạn đã có Ngọc Bội Ngũ Hành, hãy chọn Vé Mở Thẻ.",no_ticket:"Bạn không có vé loại này.",bag_full:"Túi thẻ đã đầy, hãy dùng hoặc bỏ 1 thẻ rồi dùng vé.",
     price_too_low:"Giá thấp hơn giá sàn.",bad_price:"Giá phải là số nguyên dương.",max_listings:"Bạn đang treo tối đa "+MAX_LIST+" sao.",
     not_enough_star:"Bạn không còn sao khả dụng loại này (sao đang treo bị khóa).",sold_out:"Sao này vừa được bán hoặc đã bị hủy treo, hãy làm mới chợ.",
     price_changed:"Giá vừa thay đổi, hãy xem lại giá mới.",own_listing:"Không thể mua sao do chính mình treo.",bad_star:"Sao không hợp lệ.",missing_fields:"Thiếu thông tin.",bad_card:"Thẻ này không chọn được.",bad_kind:"Loại đổi không hợp lệ.",same_star:"Bạn đang dùng đúng sao này làm Sao Bản Mệnh rồi, hãy chọn sao khác. 12 sao chưa bị trừ."};
@@ -16317,6 +16507,7 @@ window.addEventListener("DOMContentLoaded", () => {
       reg("star_tk_card","star_use_ticket_card_p");
       reg("star_tk_pick","star_pick_ticket_card_p",{card:"p_card"});   /* 08/10: Vé Mở Thẻ chọn thẻ tùy ý */
       reg("star_upgrade","star_upgrade_destiny_p");
+      reg("star_sac","star_sacrifice_p");                                  /* 26/10: hiến tế Bọ Cạp -> Xà Phu */
       reg("star_destiny","star_set_destiny_p",{star:"p_star"});          /* 08/10: chọn/đổi Sao Bản Mệnh */
       reg("star_market","star_market_list_p",{className:"p_class"});
       reg("star_list","star_list_p",{className:"p_class",star:"p_star",price:"p_price"});
@@ -16375,6 +16566,31 @@ window.addEventListener("DOMContentLoaded", () => {
         if(sup.length) feed("🌟 "+meName()+" quay ra sao siêu hiếm: "+sup.join(", ")+"!");
         if(r.cost) await refreshPouch();
       } finally { spinning=false; }
+    });
+  }
+  function hasXa(){ return cnt(13)>0; }
+  /* 26/10: XÀ PHU — hiến tế 1 Bọ Cạp, 10% ra Xà Phu, trượt 10 lần thì lần 11 chắc chắn ra. Có Xà Phu: lượt quay miễn phí/ngày 3 -> 4. */
+  async function doSacrifice(){
+    var pity=S.xaPity|0;
+    if(!confirm("Hiến tế 1 sao Bọ Cạp để có 10% nhận sao Xà Phu"+(pity>=10?" (lần này CHẮC CHẮN ra nhờ bảo hiểm)":"")+"? Bọ Cạp sẽ MẤT dù trúng hay trượt.")) return;
+    await run(async function(){
+      var r=await call("star_sac",{});
+      if(!r||!r.ok){ msg=errText(r); return; }
+      S.stars=r.stars; S.xaPity=r.pity;
+      if(r.hit){
+        S.starFree=(S.starFree|0)+1;
+        msg="🐍 Hiến tế thành công! Bạn nhận được sao thứ 13 Xà Phu — từ nay mỗi ngày có 4 lượt quay sao miễn phí!";
+        feed("🐍 "+meName()+" hiến tế Bọ Cạp và nhận được sao thứ 13 Xà Phu!");
+      } else {
+        msg="Hiến tế trượt, Bọ Cạp đã mất. Bảo hiểm: "+r.pity+"/10"+(r.pity>=10?" — lần hiến tế tới chắc chắn ra Xà Phu!":".");
+        feed("🦂 "+meName()+" hiến tế Bọ Cạp nhưng chưa thấy Xà Phu xuất hiện ("+r.pity+"/10)...");
+      }
+      try{ if(r.hit&&window.XAP) XAP.applyLocal(); }catch(e){}
+      try{ if(window.XAP) XAP.ceremony(r); }catch(e){}   /* thông báo toàn màn hình: trúng HAY trượt đều hiện */
+      if(r.hit){
+        try{ await refreshServerRoster(); }catch(e){}
+        try{ if(typeof lbActive==="function"&&lbActive()&&typeof renderLeaderboardContent==="function") renderLeaderboardContent(); }catch(e){}
+      }
     });
   }
   async function doDust(star){
@@ -16620,7 +16836,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function hero(f){
     var fr=S.starFree|0, pd=S.starPaid|0, tot=fr+pd, owned=0, i;
     for(i=1;i<=12;i++) if(cnt(i)>0) owned++;
-    var sub=tot<1?'Hôm nay bạn đã hết lượt quay — mai quay tiếp nhé!':(fr>0?'Còn <b>'+fr+'</b> lượt miễn phí hôm nay'+(pd?' · '+pd+' lượt trả tiền':''):'Hết lượt miễn phí · còn <b>'+pd+'</b> lượt trả tiền ('+PAID_COST+' 🎋/lượt)');
+    var sub=tot<1?'Hôm nay bạn đã hết lượt quay — mai quay tiếp nhé!':(fr>0?'Còn <b>'+fr+'</b> lượt miễn phí hôm nay'+(hasXa()?' (có Xà Phu: 4 lượt/ngày)':'')+(pd?' · '+pd+' lượt trả tiền':''):'Hết lượt miễn phí · còn <b>'+pd+'</b> lượt trả tiền ('+PAID_COST+' 🎋/lượt)');
     var orbT=spinning?'✨':(tot<1?'Hết lượt':'QUAY'), orbS=spinning?'':(tot<1?'':(fr>0?'miễn phí':'-'+PAID_COST+' 🎋'));
     var h='<div class="cs-hero'+(spinning?' cs-spinning':'')+(tot>0&&!spinning?' cs-ready':'')+'">'+SKY;
     h+='<div class="cs-htitle">✨ Vòng Quay Chòm Sao ✨</div><div class="cs-hsub">'+sub+'</div>';
@@ -16647,6 +16863,21 @@ window.addEventListener("DOMContentLoaded", () => {
     for(i=1;i<=12;i++) h+='<span class="cs-dot '+tierOf(i).cls+(cnt(i)>0?' cs-on':'')+'" title="'+esc(STARS[i].n)+'">'+STARS[i].i+'\uFE0E</span>';
     h+='</div></div></div>';
     return h;
+  }
+  /* 26/10: mục Xà Phu (sao thứ 13) trong Kho sao */
+  function viewXaPhu(){
+    if(window.XAP&&XAP.panel) return XAP.panel({own:hasXa(),sc:avail(8),pity:S.xaPity|0,busy:busy});
+    var own=hasXa(), sc=avail(8), pity=S.xaPity|0, i13=STARS[13].i+'\uFE0E';
+    var h='<div class="cs-sub cs-xa'+(own?' cs-xa-own':'')+'"><h4>'+i13+' Sao thứ 13 · Xà Phu</h4>';
+    h+='<div class="cs-note">Xà Phu (Ophiuchus) nằm giữa Bọ Cạp và Nhân Mã; Mặt Trời đi qua vùng trời này từ 30/11 đến 17/12. Người sở hữu Xà Phu <b>vĩnh viễn</b> có thêm <b>1 lượt quay sao miễn phí mỗi ngày</b> (3 → 4). Xà Phu không quay ra được, không chế được, không bán chợ và không thuộc bộ 12 sao.</div>';
+    if(own){
+      h+='<div class="cs-xa-ok">'+i13+' Bạn đã sở hữu <b>Xà Phu</b> — mỗi ngày có <b>4</b> lượt quay sao miễn phí.</div>';
+    } else {
+      h+='<div class="cs-note">Cách duy nhất: <b>hiến tế 1 sao Bọ Cạp</b> (♏) — <b>10%</b> ra Xà Phu. Bảo hiểm: trượt 10 lần liên tiếp thì lần thứ 11 <b>chắc chắn</b> ra. Mỗi lần hiến tế đều mất 1 Bọ Cạp, kể cả khi trượt.</div>';
+      h+='<div class="cs-stats"><span>♏ Bọ Cạp khả dụng: <b>'+sc+'</b></span><span>🛡️ Bảo hiểm: <b>'+Math.min(pity,10)+'/10</b>'+(pity>=10?' · lần tới chắc ra!':'')+'</span></div>';
+      h+='<div class="cs-row"><button class="btn btn-ok" data-cs="sac"'+(sc<1?' disabled':'')+'>🔥 Hiến tế 1 Bọ Cạp'+(sc<1?' (chưa có Bọ Cạp)':'')+'</button></div>';
+    }
+    return h+'</div>';
   }
   /* 08/10: mục Sao Bản Mệnh trong Kho sao */
   function viewDestiny(){
@@ -16690,6 +16921,7 @@ window.addEventListener("DOMContentLoaded", () => {
     h+='<div class="cs-row"><button class="btn btn-outline" data-cs="dust"'+(d.n<1?' disabled':'')+'>✨ Tán '+d.n+' sao trùng thành '+d.d+' Bụi Sao</button></div>';
     h+='<div class="cs-note">Bụi Sao dùng để chế đúng 1 sao còn thiếu (Thường 15 · Hiếm 40 · Siêu hiếm 100 · Bọ Cạp 250). Bụi Sao không bán, không chuyển được. Sao trùng = sao dư sau khi giữ lại 1 sao mỗi loại.</div>';
 
+    h+=viewXaPhu();
     h+=viewDestiny();
     var tkNh=S.tkNh|0, tkCard=S.tkCard|0, ok=complete(), wk=(S.weekSets|0)>=SETS_WEEK, full=(tkNh+tkCard)>=MAX_TK;
     h+='<div class="cs-sub"><h4>🌌 Đổi bộ 12 sao lấy vé</h4>';
@@ -16780,6 +17012,7 @@ window.addEventListener("DOMContentLoaded", () => {
     var a=b.getAttribute("data-cs");
     if(a==="tab"){ tab=b.getAttribute("data-t"); msg=""; render(); if(tab==="cho") loadMarket(false); }
     else if(a==="spin") doSpin(parseInt(b.getAttribute("data-n"),10)||1);
+    else if(a==="sac") doSacrifice();
     else if(a==="dust") doDust(0);
     else if(a==="dust1") doDust(parseInt(b.getAttribute("data-s"),10));
     else if(a==="craft") doCraft(parseInt(b.getAttribute("data-s"),10));
@@ -16840,6 +17073,9 @@ window.addEventListener("DOMContentLoaded", () => {
     "#cs-root .cs-star.cs-r{background:linear-gradient(160deg,#9575CD,#512DA8);}"+
     "#cs-root .cs-star.cs-s{background:linear-gradient(160deg,#FFCA28,#E65100);}"+
     "#cs-root .cs-star.cs-miss{opacity:.45;filter:grayscale(.6);}"+
+    "#cs-root .cs-xa{border:2px solid #7E57C2;background:linear-gradient(160deg,rgba(126,87,194,.14),rgba(255,213,79,.12));border-radius:16px;padding:10px;}"+
+    "#cs-root .cs-xa.cs-xa-own{border-color:#FFC107;box-shadow:0 0 12px rgba(255,193,7,.55);}"+
+    "#cs-root .cs-xa-ok{font-weight:800;text-align:center;padding:8px;border-radius:12px;background:linear-gradient(120deg,#5E35B1,#FFB300);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);margin:6px 0;}"+
     "#cs-root .cs-star .cs-note{color:#fff;font-size:11px;}"+
     "#cs-root .cs-ico{font-size:34px;line-height:1.1;}#cs-root .cs-sn{font-weight:900;font-size:13px;}#cs-root .cs-st{font-size:11px;opacity:.9;font-weight:700;}#cs-root .cs-cnt{font-weight:900;margin:4px 0;}"+
     "#cs-root .cs-mini{padding:4px 8px;font-size:12px;margin-top:4px;}"+
